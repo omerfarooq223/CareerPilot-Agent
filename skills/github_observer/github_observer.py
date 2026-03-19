@@ -6,17 +6,19 @@ from typing import Optional
 from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / "config" / ".env", override=True)
-logger.debug(f"GITHUB_USERNAME resolved to: {os.getenv('GITHUB_USERNAME')}")
-logger.debug(f"GITHUB_TOKEN resolved to: {os.getenv('GITHUB_TOKEN')}")
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-GITHUB_USERNAME = os.getenv("GITHUB_USERNAME")
-
-HEADERS = {
-    "Authorization": f"token {GITHUB_TOKEN}",
-    "Accept": "application/vnd.github.v3+json"
-}
 
 BASE_URL = "https://api.github.com"
+
+def _get_headers():
+    """Get headers dynamically so Railway env vars are always picked up."""
+    token = os.getenv("GITHUB_TOKEN")
+    return {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+
+def _get_username():
+    return os.getenv("GITHUB_USERNAME", "")
 
 
 # ── Data models ────────────────────────────────────────────────────────────────
@@ -50,7 +52,7 @@ class GitHubProfile(BaseModel):
 def get_commit_count(repo_name: str) -> int:
     """Get total commit count for a repo (sampled via pagination header)."""
     url = f"{BASE_URL}/repos/{GITHUB_USERNAME}/{repo_name}/commits?per_page=1"
-    response = requests.get(url, headers=HEADERS)
+    response = requests.get(url, headers=_get_headers())
     if response.status_code != 200:
         return 0
     # GitHub returns total count in Link header
@@ -68,7 +70,7 @@ def get_commit_count(repo_name: str) -> int:
 def has_readme(repo_name: str) -> bool:
     """Check if a repo has a README file."""
     url = f"{BASE_URL}/repos/{GITHUB_USERNAME}/{repo_name}/readme"
-    response = requests.get(url, headers=HEADERS)
+    response = requests.get(url, headers=_get_headers())
     return response.status_code == 200
 
 
@@ -76,16 +78,16 @@ def has_readme(repo_name: str) -> bool:
 
 def fetch_github_profile() -> GitHubProfile:
     """Fetch full GitHub profile and all repo snapshots."""
-    logger.info(f"Fetching GitHub profile for: {GITHUB_USERNAME}")
+    logger.info(f"Fetching GitHub profile for: {_get_username()}")
 
     # Get user info
-    user_resp = requests.get(f"{BASE_URL}/users/{GITHUB_USERNAME}", headers=HEADERS)
+    user_resp = requests.get(f"{BASE_URL}/users/{_get_username()}", headers=_get_headers())
     user_resp.raise_for_status()
     user = user_resp.json()
 
     # Get all repos
     repos_resp = requests.get(
-        f"{BASE_URL}/users/{GITHUB_USERNAME}/repos?per_page=100&sort=updated",
+        f"{BASE_URL}/users/{_get_username()}/repos?per_page=100&sort=updated",
         headers=HEADERS
     )
     repos_resp.raise_for_status()
