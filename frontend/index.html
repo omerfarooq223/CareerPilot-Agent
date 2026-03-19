@@ -1,0 +1,1886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareerPilot — Career Intelligence Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue:        #0ea5e9;
+    --blue-dark:   #0369a1;
+    --blue-mid:    #38bdf8;
+    --blue-light:  #e0f2fe;
+    --blue-faint:  #f0f9ff;
+    --slate-900:   #0f172a;
+    --slate-700:   #334155;
+    --slate-500:   #64748b;
+    --slate-400:   #94a3b8;
+    --slate-200:   #e2e8f0;
+    --slate-100:   #f1f5f9;
+    --slate-50:    #f8fafc;
+    --white:       #ffffff;
+    --red:         #e11d48;
+    --red-light:   #fff1f2;
+    --red-border:  #fecdd3;
+    --green:       #059669;
+    --green-light: #ecfdf5;
+    --green-border:#a7f3d0;
+    --shadow-sm:   0 1px 3px rgba(15,23,42,0.08), 0 1px 2px rgba(15,23,42,0.04);
+    --shadow-md:   0 4px 12px rgba(15,23,42,0.08), 0 2px 4px rgba(15,23,42,0.04);
+    --shadow-lg:   0 12px 32px rgba(15,23,42,0.1), 0 4px 8px rgba(15,23,42,0.06);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--slate-50);
+    color: var(--slate-900);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* subtle dot grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.45;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Header ── */
+  header {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    height: 64px;
+    background: var(--white);
+    border-bottom: 1px solid var(--slate-200);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-mark {
+    width: 36px;
+    height: 36px;
+    background: var(--blue);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(14,165,233,0.35);
+  }
+
+  .logo-mark svg {
+    width: 20px;
+    height: 20px;
+    fill: white;
+  }
+
+  .logo-text h1 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--slate-900);
+    letter-spacing: -0.3px;
+  }
+
+  .logo-text span {
+    display: block;
+    font-size: 11px;
+    color: var(--slate-400);
+    letter-spacing: 0.3px;
+    font-weight: 400;
+    margin-top: -1px;
+  }
+
+  .header-center {
+    display: flex;
+    gap: 1px;
+    background: var(--slate-100);
+    border: 1px solid var(--slate-200);
+    border-radius: 10px;
+    padding: 4px;
+  }
+
+  .stat-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 20px;
+    border-radius: 7px;
+    gap: 1px;
+    transition: background 0.2s;
+  }
+
+  .stat-pill:hover { background: var(--white); }
+
+  .stat-pill .val {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--slate-900);
+    line-height: 1;
+  }
+
+  .stat-pill .val.blue { color: var(--blue-dark); }
+
+  .stat-pill .lbl {
+    font-size: 10px;
+    color: var(--slate-400);
+    letter-spacing: 0.5px;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+
+  #runAutoBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(14,165,233,0.3);
+    transition: all 0.2s;
+    letter-spacing: -0.1px;
+  }
+
+  #runAutoBtn:hover {
+    background: var(--blue-dark);
+    box-shadow: 0 4px 16px rgba(14,165,233,0.4);
+    transform: translateY(-1px);
+  }
+
+  #runAutoBtn:active { transform: translateY(0); }
+
+  #runAutoBtn.running {
+    background: var(--slate-400);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .btn-icon { font-size: 15px; }
+
+  /* ── Main layout ── */
+  main {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 316px 1fr;
+    height: calc(100vh - 64px);
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    background: var(--white);
+    border-right: 1px solid var(--slate-200);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--slate-200); border-radius: 2px; }
+
+  .sidebar-section {
+    padding: 20px 18px;
+    border-bottom: 1px solid var(--slate-100);
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--slate-400);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  /* Score card */
+  .score-card {
+    background: var(--blue-faint);
+    border: 1px solid #bae6fd;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .score-big {
+    font-size: 40px;
+    font-weight: 800;
+    color: var(--blue-dark);
+    line-height: 1;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -2px;
+    flex-shrink: 0;
+  }
+
+  .score-big span {
+    font-size: 16px;
+    color: var(--slate-400);
+    letter-spacing: 0;
+    font-weight: 500;
+  }
+
+  .score-bar-wrap {
+    flex: 1;
+  }
+
+  .score-bar-track {
+    height: 6px;
+    background: #bae6fd;
+    border-radius: 3px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    background: var(--blue);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 0 8px rgba(14,165,233,0.4);
+  }
+
+  .score-label {
+    font-size: 11px;
+    color: var(--blue-dark);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+
+  .score-sublabel {
+    font-size: 11px;
+    color: var(--slate-500);
+    margin-top: 4px;
+    line-height: 1.55;
+    cursor: help;
+  }
+
+  /* History chart */
+  .history-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 36px;
+  }
+
+  .history-bar {
+    flex: 1;
+    background: var(--blue-light);
+    border-radius: 2px 2px 0 0;
+    min-height: 4px;
+    position: relative;
+    transition: background 0.2s;
+    cursor: default;
+  }
+
+  .history-bar:hover { background: var(--blue); }
+
+  .history-bar .ht {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--slate-900);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .history-bar:hover .ht { opacity: 1; }
+
+  /* Tags */
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+  }
+
+  .tag {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .tag.gap {
+    background: var(--red-light);
+    border: 1px solid var(--red-border);
+    color: var(--red);
+  }
+
+  .tag.strength {
+    background: var(--green-light);
+    border: 1px solid var(--green-border);
+    color: var(--green);
+  }
+
+  /* Skill buttons */
+  .skill-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--slate-700);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    border-radius: 8px;
+    margin-bottom: 2px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .skill-btn:hover {
+    background: var(--blue-faint);
+    border-color: #bae6fd;
+    color: var(--blue-dark);
+  }
+
+  .skill-btn.active {
+    background: var(--blue-light);
+    border-color: var(--blue);
+    color: var(--blue-dark);
+  }
+
+  .skill-btn.running-skill {
+    background: var(--blue-faint);
+    border-color: #bae6fd;
+    animation: skillPulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes skillPulse {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0.6; }
+  }
+
+  .skill-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: var(--slate-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+
+  .skill-btn:hover .skill-icon,
+  .skill-btn.active .skill-icon {
+    background: var(--blue-light);
+  }
+
+  .skill-info { flex: 1; min-width: 0; }
+  .skill-name { display: block; font-weight: 600; font-size: 13px; }
+  .skill-desc { display: block; font-size: 11px; color: var(--slate-400); margin-top: 1px; }
+
+  .skill-chevron {
+    color: var(--slate-300);
+    font-size: 12px;
+    transition: transform 0.2s, color 0.15s;
+  }
+
+  .skill-btn:hover .skill-chevron { color: var(--blue); }
+  .skill-btn.active .skill-chevron { color: var(--blue); transform: rotate(90deg); }
+
+  /* Repo picker */
+  .repo-picker {
+    display: none;
+    margin: -2px 0 4px 0;
+    padding: 10px 12px;
+    background: var(--blue-faint);
+    border: 1px solid #bae6fd;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+  }
+
+  .repo-picker.open { display: block; }
+
+  .repo-picker select {
+    width: 100%;
+    background: var(--white);
+    border: 1px solid var(--slate-200);
+    color: var(--slate-700);
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    outline: none;
+    margin-bottom: 8px;
+    transition: border-color 0.15s;
+  }
+
+  .repo-picker select:focus { border-color: var(--blue); }
+
+  .run-repo-btn {
+    width: 100%;
+    padding: 7px;
+    background: var(--blue);
+    border: none;
+    color: white;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+
+  .run-repo-btn:hover { background: var(--blue-dark); }
+
+  /* ── Output panel ── */
+  .output-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--slate-50);
+  }
+
+  .output-header {
+    padding: 0 28px;
+    height: 52px;
+    border-bottom: 1px solid var(--slate-200);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--white);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .output-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .breadcrumb-home {
+    font-size: 13px;
+    color: var(--slate-400);
+    font-weight: 500;
+  }
+
+  .breadcrumb-sep {
+    color: var(--slate-300);
+    font-size: 12px;
+  }
+
+  .output-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--slate-900);
+  }
+
+  .output-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--green-light);
+    border: 1px solid var(--green-border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--green);
+  }
+
+  .output-badge.pending {
+    background: var(--slate-100);
+    border-color: var(--slate-200);
+    color: var(--slate-400);
+  }
+
+  .output-badge .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+
+  .output-badge.pending .dot { background: var(--slate-300); }
+
+  .output-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 32px;
+  }
+
+  .output-body::-webkit-scrollbar { width: 6px; }
+  .output-body::-webkit-scrollbar-track { background: transparent; }
+  .output-body::-webkit-scrollbar-thumb { background: var(--slate-200); border-radius: 3px; }
+
+  /* Empty state */
+  .empty-state {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .empty-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--blue-faint);
+    border: 1px solid #bae6fd;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 4px;
+  }
+
+  .empty-state h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--slate-900);
+    letter-spacing: -0.3px;
+  }
+
+  .empty-state p {
+    font-size: 13px;
+    color: var(--slate-400);
+    max-width: 280px;
+    line-height: 1.6;
+  }
+
+  .empty-hints {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .hint-chip {
+    background: var(--white);
+    border: 1px solid var(--slate-200);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--slate-500);
+    font-weight: 500;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Output content */
+  .output-content {
+    animation: fadeUp 0.3s ease;
+    max-width: 800px;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .output-content h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--slate-900);
+    letter-spacing: -0.5px;
+    margin: 24px 0 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--slate-200);
+  }
+
+  .output-content h2:first-child { margin-top: 0; }
+
+  .output-content h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--slate-900);
+    margin: 20px 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .output-content h3::before {
+    content: '';
+    width: 3px;
+    height: 14px;
+    background: var(--blue);
+    border-radius: 2px;
+    display: inline-block;
+  }
+
+  .output-content h4 {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--slate-500);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 14px 0 6px;
+  }
+
+  .output-content p {
+    color: var(--slate-600);
+    margin-bottom: 12px;
+    line-height: 1.7;
+    font-size: 14px;
+  }
+
+  .output-content strong {
+    color: var(--slate-900);
+    font-weight: 700;
+  }
+
+  .output-content ul {
+    list-style: none;
+    margin: 8px 0 16px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .output-content ul li {
+    padding: 8px 12px 8px 14px;
+    background: var(--white);
+    border: 1px solid var(--slate-200);
+    border-radius: 8px;
+    color: var(--slate-700);
+    font-size: 13px;
+    line-height: 1.5;
+    position: relative;
+    padding-left: 28px;
+  }
+
+  .output-content ul li::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--blue);
+  }
+
+  .output-content ol {
+    list-style: none;
+    margin: 8px 0 16px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    counter-reset: ol-counter;
+  }
+
+  .output-content ol li {
+    padding: 10px 14px 10px 46px;
+    background: var(--white);
+    border: 1px solid var(--slate-200);
+    border-radius: 8px;
+    color: var(--slate-700);
+    font-size: 13px;
+    line-height: 1.6;
+    position: relative;
+    counter-increment: ol-counter;
+    border-left: 3px solid var(--blue);
+  }
+
+  .output-content ol li::before {
+    content: counter(ol-counter);
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--blue-faint);
+    border: 1px solid #bae6fd;
+    color: var(--blue-dark);
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  .output-content blockquote {
+    border-left: 3px solid var(--blue);
+    margin: 12px 0;
+    padding: 12px 16px;
+    background: var(--blue-faint);
+    border-radius: 0 8px 8px 0;
+    color: var(--slate-600);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .output-content hr {
+    border: none;
+    border-top: 1px solid var(--slate-200);
+    margin: 20px 0;
+  }
+
+  .output-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+
+  .output-content th {
+    background: var(--blue-faint);
+    border: 1px solid #bae6fd;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 700;
+    color: var(--blue-dark);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .output-content td {
+    border: 1px solid var(--slate-200);
+    padding: 8px 12px;
+    color: var(--slate-700);
+    vertical-align: top;
+  }
+
+  .output-content tr:nth-child(even) td {
+    background: var(--slate-50);
+  }
+
+  .output-content code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--slate-100);
+    border: 1px solid var(--slate-200);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--blue-dark);
+  }
+
+  .output-content pre {
+    background: var(--slate-900);
+    border-radius: 10px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    margin: 12px 0;
+    box-shadow: var(--shadow-md);
+  }
+
+  .output-content pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 12px;
+    color: #e2e8f0;
+  }
+
+  /* Loading state */
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 60px 0;
+  }
+
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--blue-light);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-size: 13px;
+    color: var(--slate-400);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+
+  .loading-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--slate-300);
+  }
+
+  /* Agent result */
+  .agent-result { animation: fadeUp 0.3s ease; }
+
+  .score-hero {
+    background: var(--white);
+    border: 1px solid var(--slate-200);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .score-hero-num {
+    font-size: 72px;
+    font-weight: 800;
+    color: var(--blue);
+    line-height: 1;
+    letter-spacing: -4px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  .score-hero-num span {
+    font-size: 24px;
+    color: var(--slate-300);
+    letter-spacing: 0;
+    font-weight: 500;
+  }
+
+  .score-hero-right { flex: 1; }
+
+  .score-hero-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--slate-400);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .score-hero-track {
+    height: 8px;
+    background: var(--slate-100);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  .score-hero-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue) 0%, var(--blue-mid) 100%);
+    border-radius: 4px;
+    transition: width 1.5s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 0 10px rgba(14,165,233,0.3);
+  }
+
+  .score-hero-msg {
+    font-size: 13px;
+    color: var(--slate-500);
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  .results-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 4px;
+  }
+
+  .result-card {
+    background: var(--white);
+    border: 1px solid var(--slate-200);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    animation: fadeUp 0.3s ease both;
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+
+  .result-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: #bae6fd;
+  }
+
+  .result-card-header {
+    padding: 12px 20px;
+    background: var(--blue-faint);
+    border-bottom: 1px solid #bae6fd;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--blue-dark);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .result-card-body {
+    padding: 16px 20px;
+    font-size: 13px;
+    color: var(--slate-600);
+    line-height: 1.7;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+
+  .result-card-body::-webkit-scrollbar { width: 3px; }
+  .result-card-body::-webkit-scrollbar-thumb { background: var(--slate-200); }
+
+  /* LinkedIn box */
+  .linkedin-box {
+    background: var(--white);
+    border: 1px solid var(--slate-200);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    margin-top: 16px;
+  }
+
+  .linkedin-box-header {
+    padding: 12px 16px;
+    background: #eff6ff;
+    border-bottom: 1px solid #bfdbfe;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .linkedin-box-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1d4ed8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .copy-btn {
+    padding: 5px 12px;
+    background: #1d4ed8;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: background 0.15s;
+  }
+
+  .copy-btn:hover { background: #1e40af; }
+
+  .linkedin-post-text {
+    padding: 18px 20px;
+    font-size: 14px;
+    color: var(--slate-700);
+    line-height: 1.75;
+    white-space: pre-wrap;
+  }
+
+  .char-count {
+    padding: 8px 20px;
+    background: var(--slate-50);
+    border-top: 1px solid var(--slate-100);
+    font-size: 11px;
+    color: var(--slate-400);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--slate-900);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 1000;
+    transform: translateY(60px);
+    opacity: 0;
+    transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* Section header in results */
+  .results-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--slate-400);
+    text-transform: uppercase;
+    margin: 0 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .results-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--slate-200);
+  }
+
+  /* Error state */
+
+  /* ── Stop button ── */
+  #stopBtn {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--red-light);
+    border: 1px solid var(--red-border);
+    border-radius: 8px;
+    color: var(--red);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-left: 0px;
+    margin-right: 12px
+  }
+  #stopBtn:hover { background: #ffe4e6; border-color: var(--red); }
+  #stopBtn.visible { display: flex; }
+
+  /* ── Output tabs ── */
+  .output-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 0 28px;
+    background: var(--white);
+    border-bottom: 1px solid var(--slate-200);
+  }
+  .output-tab {
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--slate-400);
+    cursor: pointer;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .output-tab:hover { color: var(--slate-700); }
+  .output-tab.active { color: var(--blue-dark); border-bottom-color: var(--blue); }
+
+  /* ── Past outputs ── */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: fadeUp 0.2s ease; }
+
+  .past-output-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--white);
+    border: 1px solid var(--slate-200);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 6px;
+  }
+  .past-output-item:hover {
+    border-color: #bae6fd;
+    background: var(--blue-faint);
+    box-shadow: var(--shadow-md);
+  }
+  .past-output-icon {
+    width: 36px; height: 36px;
+    background: var(--blue-faint);
+    border: 1px solid #bae6fd;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .past-output-info { flex: 1; min-width: 0; }
+  .past-output-name {
+    font-size: 13px; font-weight: 600; color: var(--slate-900);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .past-output-meta {
+    font-size: 11px; color: var(--slate-400); margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .past-output-arrow { color: var(--slate-300); font-size: 14px; }
+  .past-output-item:hover .past-output-arrow { color: var(--blue); }
+
+  /* ── History action log ── */
+  .action-log-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border-left: 2px solid var(--blue-light);
+    margin-bottom: 6px;
+    background: var(--white);
+    border-radius: 0 8px 8px 0;
+    transition: border-color 0.15s;
+  }
+  .action-log-item:hover { border-left-color: var(--blue); }
+  .action-log-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--slate-300);
+    white-space: nowrap;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+  .action-log-name {
+    font-size: 12px; font-weight: 600; color: var(--slate-700);
+  }
+  .action-log-desc {
+    font-size: 11px; color: var(--slate-400); margin-top: 2px;
+  }
+
+  /* ── Memory section ── */
+  .mem-section {
+    margin-bottom: 24px;
+  }
+  .mem-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--slate-400);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--slate-200);
+  }
+  .mem-section-header span { font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <h1>CareerPilot</h1>
+      <span>Career Intelligence Agent</span>
+    </div>
+  </div>
+  <div class="header-center">
+    <div class="stat-pill">
+      <span class="val blue" id="headerScore">—</span>
+      <span class="lbl">Score</span>
+    </div>
+    <div class="stat-pill">
+      <span class="val" id="headerRepos">—</span>
+      <span class="lbl">Repos</span>
+    </div>
+    <div class="stat-pill">
+      <span class="val" id="headerSessions">—</span>
+      <span class="lbl">Sessions</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:0;">
+    <button id="stopBtn" onclick="stopCurrentTask()">✕ Stop</button>
+    <button id="runAutoBtn" onclick="runAutoAgent()">
+      <span class="btn-icon">⚡</span> Run Agent
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="section-label">Intelligence Report</div>
+      <div class="score-card">
+        <div>
+          <div class="score-big" id="scoreNum">—<span>/10</span></div>
+        </div>
+        <div class="score-bar-wrap">
+          <div class="score-label" id="scoreLabel">Hirability Score</div>
+          <div class="score-sublabel" id="scoreVerdict">Run agent to analyze your profile</div>
+          <div class="score-bar-track">
+            <div class="score-bar-fill" id="scoreBar"></div>
+          </div>
+        </div>
+      </div>
+      <div class="section-label">Score History</div>
+      <div class="history-chart" id="historyChart">
+        <div style="color:var(--slate-300);font-size:11px;">No history yet</div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="section-label">Critical Gaps</div>
+      <div class="tag-list" id="gapsList">
+        <span style="color:var(--slate-300);font-size:11px;">Run agent to detect gaps</span>
+      </div>
+      <div class="section-label" style="margin-top:14px;">Strengths</div>
+      <div class="tag-list" id="strengthsList">
+        <span style="color:var(--slate-300);font-size:11px;">—</span>
+      </div>
+    </div>
+    <div class="sidebar-section" style="flex:1;padding-bottom:24px;">
+      <div class="section-label">Skills</div>
+      <div id="skillsList">
+        <div style="color:var(--slate-300);font-size:11px;padding:8px 0;">Loading...</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Output panel -->
+  <div class="output-panel">
+    <!-- Output header -->
+    <div class="output-header">
+      <div class="output-breadcrumb">
+        <span class="breadcrumb-home">CareerPilot</span>
+        <span class="breadcrumb-sep">›</span>
+        <span class="output-title" id="outputTitle">Dashboard</span>
+      </div>
+      <div class="output-badge pending" id="outputBadge">
+        <div class="dot"></div>
+        <span id="outputMeta">Awaiting</span>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="output-tabs">
+      <button class="output-tab active" onclick="switchTab('current')" id="tab-current">Current Output</button>
+      <button class="output-tab" onclick="switchTab('memory')" id="tab-memory">Memory</button>
+      <button class="output-tab" onclick="switchTab('log')" id="tab-log">Action Log</button>
+    </div>
+
+    <!-- Tab panels -->
+    <div class="output-body" id="outputBody" style="display:block;">
+      <div class="empty-state">
+        <div class="empty-icon">🎯</div>
+        <h2>Ready to launch</h2>
+        <p>Select any skill from the sidebar, or run the full agent loop to get your career intelligence report.</p>
+        <div class="empty-hints">
+          <div class="hint-chip">💡 Suggest Project</div>
+          <div class="hint-chip">🔍 Audit Repo</div>
+          <div class="hint-chip">💼 LinkedIn Post</div>
+          <div class="hint-chip">⚡ Full Agent Run</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="output-body tab-panel" id="panel-memory" style="display:none;">
+      <div id="memoryPanel">
+        <div style="color:var(--slate-300);font-size:12px;">Loading memory...</div>
+      </div>
+    </div>
+
+    <div class="output-body tab-panel" id="panel-log" style="display:none;">
+      <div id="actionLogList">
+        <div style="color:var(--slate-300);font-size:12px;">Loading action log...</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<!-- marked.js for proper markdown rendering -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script>
+const API = '';
+let repos = [];
+let currentController = null;
+
+// Configure marked
+marked.setOptions({ breaks: true, gfm: true });
+
+async function init() {
+  await loadDashboard();
+  await loadGapTrend();
+  await loadSkills();
+  await loadRepos();
+}
+
+// ── Tab switching ─────────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('outputBody').style.display    = tab === 'current' ? 'block' : 'none';
+  document.getElementById('panel-memory').style.display  = tab === 'memory'  ? 'block' : 'none';
+  document.getElementById('panel-log').style.display     = tab === 'log'     ? 'block' : 'none';
+  document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  if (tab === 'memory') loadMemory();
+  if (tab === 'log')    loadActionLog();
+}
+
+// ── Stop button ───────────────────────────────────────────────────
+function showStop() {
+  document.getElementById('stopBtn').classList.add('visible');
+  document.getElementById('runAutoBtn').style.opacity = '0.5';
+}
+
+function hideStop() {
+  document.getElementById('stopBtn').classList.remove('visible');
+  document.getElementById('runAutoBtn').style.opacity = '1';
+}
+
+function stopCurrentTask() {
+  if (currentController) {
+    currentController.abort();
+    currentController = null;
+  }
+  hideStop();
+  document.getElementById('runAutoBtn').classList.remove('running');
+  document.getElementById('runAutoBtn').innerHTML = '<span class="btn-icon">⚡</span> Run Agent';
+  document.querySelectorAll('.skill-btn').forEach(b => b.classList.remove('running-skill'));
+  showError('Task cancelled by user.');
+  showToast('Stopped');
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const res  = await fetch(`${API}/api/dashboard`);
+    const data = await res.json();
+    if (data.score !== null) {
+      document.getElementById('headerScore').textContent    = `${data.score}/10`;
+      document.getElementById('scoreNum').innerHTML         = `${data.score}<span>/10</span>`;
+      document.getElementById('headerSessions').textContent = data.total_sessions;
+      setTimeout(() => { document.getElementById('scoreBar').style.width = `${data.score * 10}%`; }, 200);
+      const labels = ['Very Early','Needs Work','Developing','Getting There','Half Way',
+                      'Above Avg','Good','Very Good','Almost There','Excellent','Top Tier'];
+      document.getElementById('scoreLabel').textContent   = labels[data.score] || 'Hirability Score';
+      const verdict = data.verdict || 'Analysis complete';
+      const verdictEl = document.getElementById('scoreVerdict');
+      // Truncate at word boundary — no mid-sentence cuts
+      let short = verdict;
+      if (verdict.length > 160) {
+        short = verdict.substring(0, 160);
+        short = short.substring(0, short.lastIndexOf(' ')) + '...';
+      }
+      verdictEl.textContent = short;
+      verdictEl.title = verdict;
+      if (data.critical_gaps.length)
+        document.getElementById('gapsList').innerHTML =
+          data.critical_gaps.map(g => `<span class="tag gap">${g}</span>`).join('');
+      if (data.strengths.length)
+        document.getElementById('strengthsList').innerHTML =
+          data.strengths.map(s => `<span class="tag strength">${s}</span>`).join('');
+      renderHistoryChart(data.score_history);
+    }
+  } catch(e) { console.error('Dashboard error:', e); }
+}
+
+
+function renderHistoryChart(history) {
+  const chart = document.getElementById('historyChart');
+  if (!history || !history.length) return;
+  const recent = history.slice(-24);
+  chart.innerHTML = recent.map((h, i) => {
+    const pct       = (h.score / 10) * 100;
+    const date      = h.timestamp.substring(0,10);
+    const isLatest  = i === recent.length - 1;
+    const barStyle  = isLatest
+      ? 'background: var(--blue); border-radius: 3px 3px 0 0;'
+      : 'background: var(--blue-light); border-radius: 2px 2px 0 0;';
+    return `<div class="history-bar" style="height:${pct}%;${barStyle}"><div class="ht">${h.score}/10 · ${date}</div></div>`;
+  }).join('');
+}
+
+async function loadGapTrend() {
+  try {
+    const res  = await fetch(`${API}/api/history/gap-trend`);
+    const data = await res.json();
+    if (data.status !== 'ok') return;
+
+    const delta    = data.score_delta;
+    const arrow    = delta > 0 ? '↑' : delta < 0 ? '↓' : '→';
+    const color    = delta > 0 ? 'var(--green)' : delta < 0 ? 'var(--red)' : 'var(--slate-400)';
+    const bgColor  = delta > 0 ? 'var(--green-light)' : delta < 0 ? 'var(--red-light)' : 'var(--slate-100)';
+
+    let trendHtml = `
+      <div style="background:${bgColor};border-radius:8px;padding:10px 12px;margin-top:10px;font-size:11px;">
+        <div style="font-weight:700;color:${color};margin-bottom:6px;">
+          ${arrow} Score ${delta > 0 ? '+' : ''}${delta} since last session
+        </div>`;
+
+    if (data.closed_gaps.length) {
+      trendHtml += `<div style="color:var(--green);margin-bottom:4px;">
+        ✓ Closed: ${data.closed_gaps.join(', ')}</div>`;
+    }
+    if (data.persisted_gaps.length) {
+      trendHtml += `<div style="color:var(--red);margin-bottom:4px;">
+        ✗ Still open: ${data.persisted_gaps.join(', ')}</div>`;
+    }
+    if (data.new_gaps.length) {
+      trendHtml += `<div style="color:var(--slate-500);">
+        + New: ${data.new_gaps.join(', ')}</div>`;
+    }
+
+    trendHtml += '</div>';
+
+    // Append to the score card
+    const scoreCard = document.querySelector('.score-card');
+    if (scoreCard) {
+      const existing = document.getElementById('gapTrend');
+      if (existing) existing.remove();
+      const div = document.createElement('div');
+      div.id = 'gapTrend';
+      div.innerHTML = trendHtml;
+      scoreCard.parentNode.insertBefore(div, scoreCard.nextSibling);
+    }
+  } catch(e) { console.error('Gap trend error:', e); }
+}
+
+// ── Memory panel ─────────────────────────────────────────────────
+async function loadMemory() {
+  const panel = document.getElementById('memoryPanel');
+  panel.innerHTML = '<div style="color:var(--slate-300);font-size:12px;">Loading...</div>';
+  try {
+    const res  = await fetch(`${API}/api/history/memory`);
+    const data = await res.json();
+
+    const catConfig = [
+      { key:'projects',  icon:'💡', label:'Project Suggestions' },
+      { key:'audits',    icon:'🔍', label:'Repo Audits' },
+      { key:'readmes',   icon:'✍️',  label:'README Rewrites' },
+      { key:'dev_cards', icon:'🃏', label:'Developer Cards' },
+      { key:'interview', icon:'🎤', label:'Interview Prep' },
+      { key:'nudges',    icon:'📊', label:'Weekly Nudges' },
+      { key:'other',     icon:'📄', label:'Other Outputs' },
+    ];
+
+    let html = '';
+
+    // LinkedIn posts section — from SQLite, richest data
+    if (data.linkedin_posts.length) {
+      html += `<div class="mem-section">
+        <div class="mem-section-header"><span>💼</span> LinkedIn Posts</div>`;
+      data.linkedin_posts.forEach(p => {
+        const date    = p.timestamp.substring(0,10);
+        const preview = (p.post_content || '').substring(0,120) + '...';
+        const statusColor = p.status === 'approved' ? 'var(--green)' : p.status === 'discarded' ? 'var(--red)' : 'var(--slate-400)';
+        const statusBg    = p.status === 'approved' ? 'var(--green-light)' : p.status === 'discarded' ? 'var(--red-light)' : 'var(--slate-100)';
+        html += `
+          <div class="past-output-item" onclick="openLinkedInPost(${p.id})">
+            <div class="past-output-icon">💼</div>
+            <div class="past-output-info">
+              <div class="past-output-name" style="display:flex;align-items:center;gap:8px;">
+                ${p.repo_name || p.post_type}
+                <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:${statusBg};color:${statusColor};">${p.status}</span>
+              </div>
+              <div class="past-output-meta">${date} · ${p.post_type?.replace(/_/g,' ')}</div>
+              <div style="font-size:11px;color:var(--slate-400);margin-top:3px;line-height:1.4;">${preview}</div>
+            </div>
+            <div class="past-output-arrow">›</div>
+          </div>`;
+      });
+      html += '</div>';
+    }
+
+    // File-based categories
+    catConfig.forEach(cat => {
+      const items = data.categories[cat.key];
+      if (!items || !items.length) return;
+      html += `<div class="mem-section">
+        <div class="mem-section-header"><span>${cat.icon}</span> ${cat.label}</div>`;
+      items.forEach(f => {
+        const date = new Date(f.modified * 1000).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+        html += `
+          <div class="past-output-item" onclick="openOutput('${f.filename}')">
+            <div class="past-output-icon">${cat.icon}</div>
+            <div class="past-output-info">
+              <div class="past-output-name">${f.label}</div>
+              <div class="past-output-meta">${f.size_kb} KB · ${date}</div>
+            </div>
+            <div class="past-output-arrow">›</div>
+          </div>`;
+      });
+      html += '</div>';
+    });
+
+    const totalFiles = catConfig.reduce((s,c) => s + (data.categories[c.key]?.length||0), 0);
+    const totalLinkedIn = data.linkedin_posts.length;
+
+    if (!html) {
+      panel.innerHTML = `
+        <div class="empty-state" style="padding:40px 0;">
+          <div class="empty-icon">🧠</div>
+          <h2>Memory is empty</h2>
+          <p>Run some skills first — everything the agent generates gets stored here.</p>
+        </div>`;
+      return;
+    }
+
+    panel.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+        <div style="background:var(--blue-faint);border:1px solid #bae6fd;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--blue-dark);">
+          ${totalFiles} output files
+        </div>
+        <div style="background:var(--green-light);border:1px solid var(--green-border);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--green);">
+          ${totalLinkedIn} LinkedIn posts
+        </div>
+      </div>
+      ${html}`;
+  } catch(e) {
+    panel.innerHTML = '<div class="error-box" style="font-size:11px;">Could not load memory. Is the server running?</div>';
+  }
+}
+
+async function openLinkedInPost(id) {
+  try {
+    const res  = await fetch(`${API}/api/history/linkedin`);
+    const data = await res.json();
+    const post = data.posts.find(p => p.id === id);
+    if (!post) { showToast('Post not found'); return; }
+    switchTab('current');
+    document.getElementById('outputTitle').textContent = `LinkedIn · ${post.repo_name || post.post_type}`;
+    setMeta(`Status: ${post.status}`, post.status === 'approved');
+    const clean = (post.post_content || '').replace(/\*\*/g,'').trim();
+    document.getElementById('outputBody').innerHTML = `
+      <div class="output-content">
+        <h2>LinkedIn Post</h2>
+        <p style="color:var(--slate-400);font-size:12px;margin-bottom:8px;">
+          ${post.timestamp.substring(0,10)} · ${post.post_type?.replace(/_/g,' ')} · ${post.repo_name || 'general'}
+        </p>
+        <div class="linkedin-box">
+          <div class="linkedin-box-header">
+            <span class="linkedin-box-title">Post Content</span>
+            <button class="copy-btn" onclick="copyFromEl('liPostMem')">Copy</button>
+          </div>
+          <div class="linkedin-post-text" id="liPostMem">${clean}</div>
+          <div class="char-count">${clean.length} / 1300 characters</div>
+        </div>
+      </div>`;
+  } catch(e) { showToast('Error loading post'); }
+}
+
+async function openOutput(filename) {
+  try {
+    const res  = await fetch(`${API}/api/history/outputs/${filename}`);
+    const data = await res.json();
+    if (!data.content) { showToast('File not found'); return; }
+    switchTab('current');
+    const label = filename.replace('.md','').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    document.getElementById('outputTitle').textContent = label;
+    setMeta('Loaded from memory', true);
+    document.getElementById('outputBody').innerHTML =
+      `<div class="output-content">${marked.parse(data.content)}</div>`;
+  } catch(e) { showToast('Error loading file'); }
+}
+
+function copyFromEl(id) {
+  const text = document.getElementById(id)?.innerText?.trim();
+  if (text) navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'));
+}
+
+// ── Action log ────────────────────────────────────────────────────
+async function loadActionLog() {
+  try {
+    const res  = await fetch(`${API}/api/history/audits`);
+    const data = await res.json();
+
+    if (!data.history.length) {
+      document.getElementById('actionLogList').innerHTML =
+        '<div style="color:var(--slate-300);font-size:12px;padding:20px 0;">No actions recorded yet.</div>';
+      return;
+    }
+
+    document.getElementById('actionLogList').innerHTML = data.history.map(h => {
+      const time = h.timestamp.substring(0,16).replace('T',' ');
+      return `
+        <div class="action-log-item">
+          <div class="action-log-time">${time}</div>
+          <div>
+            <div class="action-log-name">${h.action.replace(/_/g,' ')}</div>
+            <div class="action-log-desc">${h.description}</div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('actionLogList').innerHTML =
+      '<div class="error-box" style="font-size:11px;">Could not load action log</div>';
+  }
+}
+
+// ── Skills ────────────────────────────────────────────────────────
+async function loadSkills() {
+  try {
+    const res  = await fetch(`${API}/api/skills`);
+    const data = await res.json();
+    const icons = {
+      suggest_project:'💡', audit_repo:'🔍', deep_audit_repo:'🧬',
+      rewrite_readme:'✍️', generate_dev_card:'🃏', mock_interview_prep:'🎤',
+      weekly_nudge:'📊', linkedin_writer:'💼',
+    };
+    document.getElementById('skillsList').innerHTML = data.skills.map(skill => `
+      <div>
+        <button class="skill-btn" id="btn-${skill.id}"
+          onclick="${skill.has_repo_picker ? `toggleRepoPicker('${skill.id}')` : `runSkill('${skill.id}')`}">
+          <span class="skill-icon">${icons[skill.id] || '⚡'}</span>
+          <span class="skill-info">
+            <span class="skill-name">${skill.label}</span>
+            <span class="skill-desc">${skill.description}</span>
+          </span>
+          <span class="skill-chevron">›</span>
+        </button>
+        ${skill.has_repo_picker ? `
+          <div class="repo-picker" id="picker-${skill.id}">
+            <select id="repo-select-${skill.id}"><option value="">Loading repos...</option></select>
+            <button class="run-repo-btn" onclick="runSkillWithRepo('${skill.id}')">Run on selected repo</button>
+          </div>` : ''}
+      </div>`).join('');
+  } catch(e) {
+    document.getElementById('skillsList').innerHTML =
+      '<div class="error-box" style="font-size:11px;">Server not running?</div>';
+  }
+}
+
+async function loadRepos() {
+  try {
+    const res  = await fetch(`${API}/api/repos`);
+    const data = await res.json();
+    repos = data.repos;
+    document.getElementById('headerRepos').textContent = repos.length;
+    repos.forEach(repo => {
+      document.querySelectorAll('select[id^="repo-select-"]').forEach(sel => {
+        if (!sel.querySelector(`option[value="${repo.name}"]`)) {
+          const opt = document.createElement('option');
+          opt.value = repo.name;
+          opt.textContent = `${repo.name}${repo.language ? ` · ${repo.language}` : ''}`;
+          sel.appendChild(opt);
+        }
+      });
+    });
+    document.querySelectorAll('select[id^="repo-select-"]').forEach(sel => {
+      const empty = sel.querySelector('option[value=""]');
+      if (empty) empty.remove();
+      if (sel.options.length) sel.options[0].selected = true;
+    });
+  } catch(e) { console.error('Repos error:', e); }
+}
+
+// ── Skill runner ──────────────────────────────────────────────────
+function toggleRepoPicker(skillId) {
+  document.getElementById(`picker-${skillId}`)?.classList.toggle('open');
+  document.getElementById(`btn-${skillId}`)?.classList.toggle('active');
+}
+
+async function runSkill(skillId, repoName = null) {
+  const label = skillId.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+  setLoading(label, `Running ${label}...`, 'This may take a few seconds');
+  switchTab('current');
+
+  const btn = document.getElementById(`btn-${skillId}`);
+  if (btn) btn.classList.add('running-skill');
+  showStop();
+
+  currentController = new AbortController();
+
+  try {
+    const body = repoName ? { repo_name: repoName } : {};
+    const res  = await fetch(`${API}/api/skills/${skillId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: currentController.signal,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Skill failed');
+
+    if (skillId === 'linkedin_writer') renderLinkedIn(data.result);
+    else renderMarkdown(label, data.result);
+
+    setMeta(`Score: ${data.score}/10`, true);
+    showToast(`${label} complete`);
+    await loadDashboard();
+  } catch(e) {
+    if (e.name !== 'AbortError') showError(e.message);
+  } finally {
+    if (btn) btn.classList.remove('running-skill');
+    hideStop();
+    currentController = null;
+  }
+}
+
+async function runSkillWithRepo(skillId) {
+  const repo = document.getElementById(`repo-select-${skillId}`)?.value;
+  if (!repo) { showToast('Select a repo first'); return; }
+  document.getElementById(`picker-${skillId}`)?.classList.remove('open');
+  document.getElementById(`btn-${skillId}`)?.classList.remove('active');
+  await runSkill(skillId, repo);
+}
+
+async function runAutoAgent() {
+  const btn = document.getElementById('runAutoBtn');
+  btn.classList.add('running');
+  btn.innerHTML = '<span class="btn-icon">⏳</span> Running...';
+  setLoading('Full Agent Run','Executing autonomous loop...','observe → analyze → remember → plan → act');
+  switchTab('current');
+  showStop();
+
+  currentController = new AbortController();
+
+  try {
+    const res  = await fetch(`${API}/api/run`, { method:'POST', signal: currentController.signal });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Agent run failed');
+    renderAgentResult(data);
+    await loadDashboard();
+    showToast(`Agent complete · Score: ${data.score}/10`);
+  } catch(e) {
+    if (e.name !== 'AbortError') showError(e.message);
+  } finally {
+    btn.classList.remove('running');
+    btn.innerHTML = '<span class="btn-icon">⚡</span> Run Agent';
+    hideStop();
+    currentController = null;
+  }
+}
+
+// ── Renderers ─────────────────────────────────────────────────────
+function setLoading(title, meta, sub) {
+  document.getElementById('outputTitle').textContent = title;
+  document.getElementById('outputMeta').textContent  = meta;
+  document.getElementById('outputBadge').className   = 'output-badge pending';
+  document.getElementById('outputBody').innerHTML = `
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <div class="loading-text">${meta}</div>
+      <div class="loading-sub">${sub}</div>
+    </div>`;
+}
+
+function setMeta(text, success=false) {
+  document.getElementById('outputMeta').textContent = text;
+  document.getElementById('outputBadge').className  = success ? 'output-badge' : 'output-badge pending';
+}
+
+function renderMarkdown(title, text) {
+  document.getElementById('outputTitle').textContent = title;
+  setMeta('Complete', true);
+  const html = marked.parse(text);
+  document.getElementById('outputBody').innerHTML = `<div class="output-content">${html}</div>`;
+}
+
+function renderLinkedIn(text) {
+  document.getElementById('outputTitle').textContent = 'LinkedIn Post';
+  setMeta('Ready to post', true);
+  const clean = text.replace(/^## .+$/gm,'').replace(/\*\*/g,'').trim();
+  document.getElementById('outputBody').innerHTML = `
+    <div class="output-content">
+      <h2>Your LinkedIn Post</h2>
+      <p style="color:var(--slate-400);font-size:12px;margin-bottom:8px;">Review below, then copy to LinkedIn.</p>
+      <div class="linkedin-box">
+        <div class="linkedin-box-header">
+          <span class="linkedin-box-title">Post Preview</span>
+          <button class="copy-btn" onclick="copyPost()">Copy Post</button>
+        </div>
+        <div class="linkedin-post-text" id="liPost">${clean}</div>
+        <div class="char-count">${clean.length} / 1300 characters</div>
+      </div>
+    </div>`;
+}
+
+function copyPost() {
+  const text = document.getElementById('liPost')?.innerText?.trim();
+  if (text) navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'));
+}
+
+function renderAgentResult(data) {
+  document.getElementById('outputTitle').textContent = 'Agent Run Complete';
+  setMeta(`Score: ${data.score}/10`, true);
+  const actionsHtml = data.results.map((r,i) => {
+    const preview = r.output.length > 600 ? r.output.substring(0,600) + '\n\n*[truncated — open Memory tab for full output]*' : r.output;
+    const html    = marked.parse(preview);
+    return `
+    <div class="result-card" style="animation-delay:${i*0.08}s">
+      <div class="result-card-header">${r.skill.replace(/_/g,' ').toUpperCase()}</div>
+      <div class="result-card-body output-content">${html}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('outputBody').innerHTML = `
+    <div class="agent-result">
+      <div class="score-hero">
+        <div class="score-hero-num">${data.score}<span>/10</span></div>
+        <div class="score-hero-right">
+          <div class="score-hero-label">Hirability Score</div>
+          <div class="score-hero-track">
+            <div class="score-hero-fill" style="width:0%" id="heroFill"></div>
+          </div>
+          <div class="score-hero-msg">"${data.agent_message}"</div>
+        </div>
+      </div>
+      <div class="results-section-label">Actions · ${data.actions_run.join(' → ')}</div>
+      <div class="results-grid">${actionsHtml}</div>
+    </div>`;
+  setTimeout(() => {
+    const f = document.getElementById('heroFill');
+    if (f) f.style.width = `${data.score * 10}%`;
+  }, 200);
+}
+
+function showError(msg) {
+  document.getElementById('outputBody').innerHTML =
+    `<div class="error-box"><strong>Something went wrong:</strong> ${msg}</div>`;
+  setMeta('Failed', false);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+init();
+</script>
+</body>
+</html>
