@@ -1,6 +1,7 @@
 import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -20,8 +21,11 @@ app.include_router(dashboard.router, prefix="/api")
 app.include_router(skills.router,    prefix="/api")
 app.include_router(agent.router,     prefix="/api")
 
-app.mount("/static", StaticFiles(directory="frontend"), name="static")
+import os
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "frontend")), name="static")
 
 @app.get("/")
 def root():
-    return FileResponse("frontend/index.html")
+    return FileResponse(str(BASE_DIR / "frontend" / "index.html"))

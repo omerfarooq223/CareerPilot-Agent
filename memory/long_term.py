@@ -5,7 +5,8 @@ from loguru import logger
 from skills.github_observer.github_observer import GitHubProfile
 from skills.gap_analyzer.gap_analyzer import GapReport
 
-DB_PATH = "memory/careerpilot.db"
+import os
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "careerpilot.db")
 
 
 def init_db():
