@@ -1,9 +1,11 @@
 # Skill: update_goals
 
 ## What it does
-Auto-updates goals.yaml based on current GitHub profile — adds new repos to
-shipped_projects, closes gaps that are now covered, and adds newly demonstrated
-skills to self_declared_skills.
+Auto-updates goals.yaml based on current GitHub profile:
+1. Adds new repos to shipped_projects
+2. Updates self_declared_skills with newly demonstrated technologies
+
+Note: Gap detection is handled entirely by gap_analyzer — no manual gaps needed.
 
 ## Inputs
 - `session.profile.repos` — scans all repos for skill signals
@@ -22,4 +24,4 @@ skills to self_declared_skills.
 - `memory/short_term.py`
 
 ## Version
-1.0.0
+1.1.0

@@ -205,5 +205,8 @@ See `CLAUDE.md → How to add a new skill`
 - [x] Stop button for cancelling running tasks
 - [x] Audit comparison — detects what improved between audits
 - [x] Gap trend analysis — tracks which gaps closed/opened between sessions
-- [x] GitHub Actions weekly email reminder — reads latest_snapshot.json
-- [ ] Streamlit alternative UI
+- [x] goals.yaml auto-updater — syncs shipped_projects and skills from GitHub
+- [x] GitHub Actions weekly email reminder
+- [x] Railway deployment — live at https://web-production-e1faa.up.railway.app
+- [ ] Persistent memory on Railway
+- [ ] Docker containerization

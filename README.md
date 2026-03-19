@@ -39,6 +39,7 @@ python agent.py
 uvicorn api.server:app --reload --port 8000
 # Open http://localhost:8000
 ```
+**Or visit the live demo:** https://web-production-e1faa.up.railway.app
 
 ---
 
@@ -92,6 +93,8 @@ careerpilot/
 ├── AGENT.md                        # Agent architecture documentation
 ├── README.md                       # Public-facing project documentation
 ├── pyproject.toml                  # Packaging and dependency config
+├── Procfile                        # Railway start command
+├── railway.json                    # Railway deployment config
 ├── requirements.txt                # Pinned dependencies
 ├── config/
 │   ├── .env                        # Secrets — NEVER commit this
@@ -172,6 +175,7 @@ careerpilot/
 | **Security** | Prompt injection guard, path traversal protection |
 | **Testing** | pytest |
 | **Scheduling** | GitHub Actions (weekly reminder) |
+| **Deployment** | Railway (free tier) |
 
 ---
 
