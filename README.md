@@ -61,9 +61,6 @@ target_timeline: "3 months"
 target_companies:
   - "Arbisoft"
   - "Folio3"
-self_declared_skills:
-  - "Python"
-  - "Agentic AI"
 preferred_stack:
   - "FastAPI"
   - "Django"
