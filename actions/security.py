@@ -115,7 +115,6 @@ REQUIRED_GOALS_KEYS = [
     "model_name",
     "target_role",
     "target_timeline",
-    "self_declared_skills",
 ]
 
 def validate_goals(goals: dict) -> dict:

@@ -46,6 +46,7 @@ def init_db():
     conn.commit()
     conn.close()
     logger.info("Database initialized")
+    seed_from_snapshot()
 
 
 def save_snapshot(report: GapReport):
@@ -261,6 +262,45 @@ def export_latest_snapshot():
     path = Path("memory/latest_snapshot.json")
     path.write_text(json.dumps(data, indent=2), encoding="utf-8")
     logger.success(f"Snapshot exported → {path}")
+
+def seed_from_snapshot():
+    """On fresh deployment, seed DB from latest_snapshot.json if DB is empty."""
+    import json
+    from pathlib import Path
+
+    snapshot_path = Path(__file__).resolve().parent / "latest_snapshot.json"
+    if not snapshot_path.exists():
+        return
+
+    history = get_score_history()
+    if history:
+        return  # DB already has data
+
+    try:
+        data = json.loads(snapshot_path.read_text())
+        if not data.get("score"):
+            return
+
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO weekly_snapshots
+            (timestamp, overall_score, strengths, critical_gaps, top_3_actions, portfolio_ready_repos, verdict)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (
+            data.get("last_updated", datetime.now().isoformat()),
+            data["score"],
+            json.dumps(data.get("strengths", [])),
+            json.dumps(data.get("critical_gaps", [])),
+            json.dumps(data.get("score_history", [{}])[-1:]),
+            json.dumps([]),
+            "Seeded from latest_snapshot.json"
+        ))
+        conn.commit()
+        conn.close()
+        logger.info("DB seeded from latest_snapshot.json")
+    except Exception as e:
+        logger.warning(f"Could not seed from snapshot: {e}")
 
 # ── Quick test ─────────────────────────────────────────────────────────────────
 
