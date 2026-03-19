@@ -71,7 +71,7 @@ Repos:
 Target role: {goals['target_role']}
 Timeline: {goals['target_timeline']}
 Target companies: {', '.join(goals['target_companies'])}
-Self-declared skills: {', '.join(goals['self_declared_skills'])}
+Self-declared skills: {', '.join(goals.get('self_declared_skills', []))}
 Preferred stack: {', '.join(goals['preferred_stack'])}
 
 --- YOUR TASK ---

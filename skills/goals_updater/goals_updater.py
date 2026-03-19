@@ -82,7 +82,7 @@ def update_goals(session: SessionMemory) -> str:
             changes.append(f"Added to skills: {skill_label}")
 
     if new_skills:
-        goals["self_declared_skills"].extend(new_skills)
+        goals.setdefault("self_declared_skills", []).extend(new_skills)
 
     # ── Save updated goals.yaml ───────────────────────────────────
     with open(GOALS_PATH, "w") as f:
