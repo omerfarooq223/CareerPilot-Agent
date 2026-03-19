@@ -1,73 +1,111 @@
-model_provider: "groq"
-model_name: "llama-3.3-70b-versatile"
-
-target_role: "AI/ML Intern · Agentic AI Developer · Python Backend Intern"
-target_timeline: "2-3 months"
-
+model_provider: groq
+model_name: llama-3.3-70b-versatile
+target_role: AI/ML Intern · Agentic AI Developer · Python Backend Intern
+target_timeline: 2-3 months
 target_companies:
-  - "Arbisoft"
-  - "Folio3"
-  - "10Pearls"
-  - "Contour Software"
-  - "Systems Limited"
-  - "Tkxel"
-  - "Devsinc"
-
+- Arbisoft
+- Folio3
+- 10Pearls
+- Contour Software
+- Systems Limited
+- Tkxel
+- Devsinc
 self_declared_skills:
-  - "Python (Advanced)"
-  - "Agentic AI Architecture"
-  - "LLM Integration (Groq, LLaMA 3.3)"
-  - "Machine Learning (Scikit-learn)"
-  - "Computer Vision (OpenCV, YOLOv8)"
-  - "NLP & Text Classification"
-  - "n8n Workflow Automation"
-  - "REST APIs"
-  - "Git / GitHub"
-  - "C++"
-  - "SQL"
-
+- Python (Advanced)
+- Agentic AI Architecture
+- LLM Integration (Groq, LLaMA 3.3)
+- Machine Learning (Scikit-learn)
+- Computer Vision (OpenCV, YOLOv8)
+- NLP & Text Classification
+- n8n Workflow Automation
+- REST APIs
+- Git / GitHub
+- C++
+- SQL
+- FastAPI
 preferred_stack:
-  - "FastAPI"
-  - "Django"
-  - "Groq API"
-  - "Python-docx / openpyxl / PyMuPDF"
-
+- FastAPI
+- Django
+- Groq API
+- Python-docx / openpyxl / PyMuPDF
 shipped_projects:
-  - name: "AutoGrader Agent"
-    type: "Agentic AI"
-    url: "github.com/omerfarooq223/AutoGrader-Agent"
-  - name: "UrduPlanner Agent"
-    type: "Agentic AI"
-    url: "github.com/omerfarooq223/UrduPlanner-Agent"
-  - name: "Parking Detection System"
-    type: "Computer Vision"
-    url: "github.com/omerfarooq223/parking-detection-system"
-  - name: "YOLO Vehicle Detection"
-    type: "Computer Vision"
-    url: "github.com/omerfarooq223/YOLO_Vehicle_Detection"
-  - name: "Language Recognition"
-    type: "Machine Learning"
-    url: "github.com/omerfarooq223/language-recognition-logistic-regression"
-  - name: "Solana Trading Agent"
-    type: "Agentic AI / Web3"
-    url: "github.com/omerfarooq223/solana-trading-agent-skills"
-
+- name: AutoGrader Agent
+  type: Agentic AI
+  url: github.com/omerfarooq223/AutoGrader-Agent
+- name: UrduPlanner Agent
+  type: Agentic AI
+  url: github.com/omerfarooq223/UrduPlanner-Agent
+- name: Parking Detection System
+  type: Computer Vision
+  url: github.com/omerfarooq223/parking-detection-system
+- name: YOLO Vehicle Detection
+  type: Computer Vision
+  url: github.com/omerfarooq223/YOLO_Vehicle_Detection
+- name: Language Recognition
+  type: Machine Learning
+  url: github.com/omerfarooq223/language-recognition-logistic-regression
+- name: Solana Trading Agent
+  type: Agentic AI / Web3
+  url: github.com/omerfarooq223/solana-trading-agent-skills
+- name: CareerPilot-Agent
+  type: Python Project
+  url: github.com/omerfarooq223/CareerPilot-Agent
+  stack:
+  - Python
+- name: personal-ai-employee
+  type: Automation
+  url: github.com/omerfarooq223/personal-ai-employee
+  stack:
+  - ai-agent
+  - automation
+  - claude-code
+  - gmail-api
+  - mcp
+  - obsidian
+  - panaversity
+  - python
+- name: omerfarooq223.github.io
+  type: Python Project
+  url: github.com/omerfarooq223/omerfarooq223.github.io
+  stack:
+  - HTML
+- name: autoresearch-agent
+  type: Agentic AI
+  url: github.com/omerfarooq223/autoresearch-agent
+  stack:
+  - ai
+  - automation
+  - groq
+  - llm
+  - pdf
+  - python
+  - research
+  - tavily
+- name: DSA_CPP
+  type: Python Project
+  url: github.com/omerfarooq223/DSA_CPP
+  stack:
+  - C++
+- name: n8n-jira-slack
+  type: Python Project
+  url: github.com/omerfarooq223/n8n-jira-slack
+  stack:
+  - Python
+- name: n8n-workflows
+  type: Python Project
+  url: github.com/omerfarooq223/n8n-workflows
+  stack:
+  - HTML
 credentials:
   cgpa: 3.82
-  scholarship: "70% Merit"
+  scholarship: 70% Merit
   awards:
-    - "Dean's Award — top 10% SGPA in AI department"
-    - "Rector's Award — perfect 4.0 SGPA"
-  program: "Panaversity Agentic AI Program"
-  university: "UMT Lahore — BS Artificial Intelligence (6th Semester)"
-
-portfolio: "omerfarooq223.github.io"
-github: "github.com/omerfarooq223"
-linkedin: "linkedin.com/in/omer-farooq-b3494236b"
-location: "Lahore, Pakistan"
+  - Dean's Award — top 10% SGPA in AI department
+  - Rector's Award — perfect 4.0 SGPA
+  program: Panaversity Agentic AI Program
+  university: UMT Lahore — BS Artificial Intelligence (6th Semester)
+portfolio: omerfarooq223.github.io
+github: github.com/omerfarooq223
+linkedin: linkedin.com/in/omer-farooq-b3494236b
+location: Lahore, Pakistan
 open_to_remote: true
-
-gaps_to_fill_before_applying:
-  - "FastAPI — build one small project (a REST API wrapping a Groq call is perfect)"
-  - "Django — at least one tutorial project to speak to it in interviews"
-  - "Docker basics — most backend internships expect this"

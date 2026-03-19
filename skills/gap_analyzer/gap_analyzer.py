@@ -73,7 +73,6 @@ Timeline: {goals['target_timeline']}
 Target companies: {', '.join(goals['target_companies'])}
 Self-declared skills: {', '.join(goals['self_declared_skills'])}
 Preferred stack: {', '.join(goals['preferred_stack'])}
-Gaps student already identified: {', '.join(goals.get('gaps_to_fill_before_applying', []))}
 
 --- YOUR TASK ---
 --- SCORING RUBRIC (follow this exactly) ---

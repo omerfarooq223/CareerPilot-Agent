@@ -50,6 +50,7 @@ from skills.interview_prep.interview_prep import mock_interview_prep
 from skills.nudge_writer.nudge_writer import weekly_nudge
 from skills.linkedin_writer.linkedin_writer import linkedin_writer
 from skills.registry import registry
+from skills.goals_updater.goals_updater import update_goals
 
 # ── Register all skills into the registry ─────────────────────────────────────
 registry.register("suggest_project",    "Suggest a mini-project to fill skill gaps")(suggest_project)
@@ -59,6 +60,7 @@ registry.register("generate_dev_card",  "Generate a markdown developer profile c
 registry.register("mock_interview_prep","Generate role-specific interview questions")(mock_interview_prep)
 registry.register("weekly_nudge",       "Write an honest weekly progress report")(weekly_nudge)
 registry.register("linkedin_writer", "Generate and approve LinkedIn posts with HITL flow")(linkedin_writer)
+registry.register("update_goals", "Auto-update goals.yaml from GitHub profile")(update_goals)
 
 # ── Dispatcher ─────────────────────────────────────────────────────────────────
 
