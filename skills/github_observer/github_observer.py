@@ -51,7 +51,7 @@ class GitHubProfile(BaseModel):
 
 def get_commit_count(repo_name: str) -> int:
     """Get total commit count for a repo (sampled via pagination header)."""
-    url = f"{BASE_URL}/repos/{GITHUB_USERNAME}/{repo_name}/commits?per_page=1"
+    url = f"{BASE_URL}/repos/{_get_username()}/{repo_name}/commits?per_page=1"
     response = requests.get(url, headers=_get_headers())
     if response.status_code != 200:
         return 0
@@ -69,7 +69,7 @@ def get_commit_count(repo_name: str) -> int:
 
 def has_readme(repo_name: str) -> bool:
     """Check if a repo has a README file."""
-    url = f"{BASE_URL}/repos/{GITHUB_USERNAME}/{repo_name}/readme"
+    url = f"{BASE_URL}/repos/{_get_username()}/{repo_name}/readme"
     response = requests.get(url, headers=_get_headers())
     return response.status_code == 200
 
@@ -88,7 +88,7 @@ def fetch_github_profile() -> GitHubProfile:
     # Get all repos
     repos_resp = requests.get(
         f"{BASE_URL}/users/{_get_username()}/repos?per_page=100&sort=updated",
-        headers=HEADERS
+        headers=_get_headers()
     )
     repos_resp.raise_for_status()
     raw_repos = repos_resp.json()
@@ -123,7 +123,7 @@ def fetch_github_profile() -> GitHubProfile:
         logger.info(f"  ✓ {name} | {language} | {commit_count} commits | README: {readme}")
 
     profile = GitHubProfile(
-        username=user.get("login", GITHUB_USERNAME),
+        username=user.get("login", _get_username()),
         name=user.get("name"),
         bio=user.get("bio"),
         followers=user.get("followers", 0),
