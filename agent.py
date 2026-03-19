@@ -16,7 +16,7 @@ from planner.reasoner import make_plan
 from actions.executor import execute_plan
 from actions.security import check_env_vars, validate_goals
 from memory.short_term import SessionMemory
-from memory.long_term import init_db, save_snapshot, log_action, get_score_history
+from memory.long_term import init_db, save_snapshot, log_action, get_score_history, export_latest_snapshot
 from pathlib import Path
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / "config" / ".env", override=True)
 console = Console()
@@ -99,6 +99,7 @@ def run():
     execute_plan(plan.actions_to_take, session)
 
     # ── DONE ──────────────────────────────────────────────────────────────────
+    export_latest_snapshot()
     console.rule("[bold green]DONE")
     console.print(f"[green]✓[/green] {len(session.actions_taken)} actions executed")
     console.print(f"[green]✓[/green] All outputs saved to: [bold]output/[/bold]")

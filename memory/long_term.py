@@ -219,6 +219,48 @@ def get_gap_trend() -> dict:
         "previous_date":  rows[1][3][:10],
     }
 
+import json
+from pathlib import Path
+
+def export_latest_snapshot():
+    """Export latest data to a JSON file that GitHub Actions can read."""
+    snapshot = get_last_snapshot()
+    history  = get_score_history()
+    trend    = get_gap_trend()
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT repo_name, post_type, timestamp, status
+        FROM linkedin_posts WHERE status = 'approved'
+        ORDER BY timestamp DESC LIMIT 1
+    """)
+    last_post = cursor.fetchone()
+    conn.close()
+
+    data = {
+        "score":           snapshot["overall_score"] if snapshot else None,
+        "critical_gaps":   snapshot["critical_gaps"] if snapshot else [],
+        "strengths":       snapshot["strengths"] if snapshot else [],
+        "verdict":         snapshot["verdict"] if snapshot else "",
+        "last_updated":    snapshot["timestamp"][:10] if snapshot else None,
+        "score_history":   history[-5:] if history else [],
+        "score_delta":     trend.get("score_delta", 0) if trend.get("status") == "ok" else 0,
+        "closed_gaps":     trend.get("closed_gaps", []) if trend.get("status") == "ok" else [],
+        "days_since_post": None,
+        "last_post_repo":  None,
+    }
+
+    if last_post:
+        last_post_date = datetime.fromisoformat(last_post[2])
+        data["days_since_post"] = (datetime.now() - last_post_date).days
+        data["last_post_repo"]  = last_post[0]
+
+    # Save to memory/ so it can be committed
+    path = Path("memory/latest_snapshot.json")
+    path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    logger.success(f"Snapshot exported → {path}")
+
 # ── Quick test ─────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":

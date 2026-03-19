@@ -1,0 +1,44 @@
+{
+  "score": 7,
+  "critical_gaps": [
+    "lack of FastAPI/Django experience",
+    "no Docker basics",
+    "limited C++ usage"
+  ],
+  "strengths": [
+    "diverse projects",
+    "good use of AI/ML technologies",
+    "strong Python skills"
+  ],
+  "verdict": "Muhammad Umar Farooq has a good foundation in AI/ML and Python, with a diverse range of projects showcasing his skills. However, he lacks experience in key technologies like FastAPI and Django, and has limited usage of C++. To become a strong candidate for AI/ML internships, he should focus on building projects that utilize these technologies and demonstrate his ability to work with them. With some focused effort, he can close the gaps in his portfolio and become a more competitive candidate.",
+  "last_updated": "2026-03-19",
+  "score_history": [
+    {
+      "timestamp": "2026-03-19T15:57:09.978011",
+      "score": 7
+    },
+    {
+      "timestamp": "2026-03-19T18:03:51.433713",
+      "score": 6
+    },
+    {
+      "timestamp": "2026-03-19T18:25:59.669739",
+      "score": 7
+    },
+    {
+      "timestamp": "2026-03-19T18:28:16.748105",
+      "score": 7
+    },
+    {
+      "timestamp": "2026-03-19T21:58:37.812203",
+      "score": 7
+    }
+  ],
+  "score_delta": 0,
+  "closed_gaps": [
+    "no Docker experience",
+    "lack of FastAPI and Django projects"
+  ],
+  "days_since_post": 0,
+  "last_post_repo": "AutoGrader-Agent"
+}

@@ -17,54 +17,17 @@ RECEIVERS = os.getenv("REMINDER_EMAIL_RECEIVERS", "").split(",")
 # ── Fetch data from SQLite ─────────────────────────────────────────
 
 def get_latest_data() -> dict:
-    if not Path(DB_PATH).exists():
-        return {}
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    # Latest snapshot
-    cursor.execute("""
-        SELECT overall_score, critical_gaps, strengths, verdict, timestamp
-        FROM weekly_snapshots ORDER BY timestamp DESC LIMIT 1
-    """)
-    row = cursor.fetchone()
-
-    # Score history
-    cursor.execute("""
-        SELECT overall_score, timestamp FROM weekly_snapshots
-        ORDER BY timestamp DESC LIMIT 5
-    """)
-    history = cursor.fetchall()
-
-    # Last LinkedIn post
-    cursor.execute("""
-        SELECT repo_name, post_type, timestamp, status
-        FROM linkedin_posts WHERE status = 'approved'
-        ORDER BY timestamp DESC LIMIT 1
-    """)
-    last_post = cursor.fetchone()
-
-    conn.close()
-
-    if not row:
-        return {}
-
-    score, gaps, strengths, verdict, ts = row
-    days_since_post = None
-    if last_post:
-        last_post_date = datetime.fromisoformat(last_post[2])
-        days_since_post = (datetime.now() - last_post_date).days
-
-    return {
-        "score":            score,
-        "critical_gaps":    json.loads(gaps),
-        "strengths":        json.loads(strengths),
-        "verdict":          verdict,
-        "last_updated":     ts[:10],
-        "score_history":    [{"score": r[0], "date": r[1][:10]} for r in history],
-        "days_since_post":  days_since_post,
-        "last_post_repo":   last_post[0] if last_post else None,
-    }
+    """Load data from committed JSON snapshot."""
+    paths = [
+        Path("memory/latest_snapshot.json"),
+        Path("../memory/latest_snapshot.json"),
+    ]
+    for path in paths:
+        if path.exists():
+            print(f"Loading snapshot from {path}")
+            return json.loads(path.read_text())
+    print("No snapshot found")
+    return {}
 
 
 # ── Build email ────────────────────────────────────────────────────
@@ -73,7 +36,7 @@ def build_html(data: dict) -> str:
     if not data:
         return """
         <p>No data available yet — run CareerPilot first to generate your profile.</p>
-        <p><a href="https://github.com/omerfarooq223/careerpilot">Open CareerPilot →</a></p>
+        <p><a href="https://github.com/omerfarooq223/CareerPilot-Agent">Open CareerPilot →</a></p>
         """
 
     score        = data.get("score", "N/A")
