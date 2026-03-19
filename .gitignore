@@ -3,6 +3,8 @@ __pycache__/
 *.pyc
 config/.env
 output/
-memory/careerpilot.db
 .DS_Store
 .pytest_cache/
+memory/careerpilot.db
+memory/__pycache__/
+!memory/latest_snapshot.json

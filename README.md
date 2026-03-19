@@ -128,12 +128,18 @@ careerpilot/
 ├── memory/
 │   ├── short_term.py               # SessionMemory — current run state
 │   └── long_term.py                # SQLite — snapshots, action log, LinkedIn history
+│   └── latest_snapshot.json        # Auto-generated — read by GitHub Actions
 ├── planner/
 │   └── reasoner.py                 # Groq-powered autonomous planner
 ├── actions/
 │   ├── executor.py                 # Skill dispatcher + shared utilities
 │   ├── error_handler.py            # Retry, timeout, fallback, rate limiting
 │   └── security.py                 # Input sanitization, path guards, secret scrubbing
+├── scripts/
+│   └── weekly_reminder.py          # GitHub Actions email script
+└── .github/
+│   └── workflows/
+│       └── weekly_reminder.yml     # Scheduled Friday reminder
 ├── api/
 │   ├── server.py                   # FastAPI app — serves UI and skill endpoints
 │   └── routes/
@@ -165,6 +171,7 @@ careerpilot/
 | **Error handling** | Custom retry/timeout/fallback decorators |
 | **Security** | Prompt injection guard, path traversal protection |
 | **Testing** | pytest |
+| **Scheduling** | GitHub Actions (weekly reminder) |
 
 ---
 
@@ -197,6 +204,21 @@ pytest tests/ -v
 - Secret scrubbing before any LLM call
 - Environment variable validation at boot
 - Rate limiting on all Groq API calls
+
+---
+
+## Weekly Email Reminder
+
+CareerPilot automatically emails you every Friday at 6PM PKT with your
+current score, gaps, and a LinkedIn nudge — no laptop required.
+
+Setup:
+1. Go to your repo → Settings → Secrets and variables → Actions
+2. Add `REMINDER_EMAIL_SENDER`, `REMINDER_EMAIL_PASSWORD`, `REMINDER_EMAIL_RECEIVERS`
+3. Run `python agent.py` once to generate `memory/latest_snapshot.json`
+4. Push to GitHub — the workflow runs automatically every Friday
+
+To test manually: GitHub → Actions → Weekly CareerPilot Reminder → Run workflow
 
 ---
 

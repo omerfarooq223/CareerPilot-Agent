@@ -205,5 +205,5 @@ See `CLAUDE.md → How to add a new skill`
 - [x] Stop button for cancelling running tasks
 - [x] Audit comparison — detects what improved between audits
 - [x] Gap trend analysis — tracks which gaps closed/opened between sessions
-- [ ] GitHub Actions weekly email reminder
+- [x] GitHub Actions weekly email reminder — reads latest_snapshot.json
 - [ ] Streamlit alternative UI
