@@ -5,6 +5,11 @@ from pydantic import BaseModel
 from typing import Optional
 from pathlib import Path
 from dotenv import load_dotenv
+import json
+from datetime import datetime, timedelta
+
+CACHE_PATH = Path(__file__).resolve().parent.parent.parent / "memory" / "github_cache.json"
+CACHE_TTL_HOURS = 1
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / "config" / ".env", override=True)
 
 BASE_URL = "https://api.github.com"
@@ -74,10 +79,50 @@ def has_readme(repo_name: str) -> bool:
     return response.status_code == 200
 
 
+# ── Cache helpers ─────────────────────────────────────────────────────────────
+
+def _load_cache() -> GitHubProfile | None:
+    """Load cached GitHub profile if it exists and is fresh."""
+    if not CACHE_PATH.exists():
+        return None
+    try:
+        data = json.loads(CACHE_PATH.read_text())
+        cached_at = datetime.fromisoformat(data.get("_cached_at", "2000-01-01"))
+        if datetime.now() - cached_at > timedelta(hours=CACHE_TTL_HOURS):
+            logger.debug("GitHub cache expired")
+            return None
+        logger.info("Using cached GitHub profile")
+        del data["_cached_at"]
+        return GitHubProfile(**data)
+    except Exception as e:
+        logger.debug(f"Cache load failed: {e}")
+        return None
+
+
+def _save_cache(profile: GitHubProfile) -> None:
+    """Save GitHub profile to cache with timestamp."""
+    try:
+        data = profile.model_dump()
+        data["_cached_at"] = datetime.now().isoformat()
+        CACHE_PATH.write_text(json.dumps(data, default=str))
+        logger.debug(f"GitHub profile cached → {CACHE_PATH}")
+    except Exception as e:
+        logger.debug(f"Cache save failed: {e}")
+
+
 # ── Main observer ──────────────────────────────────────────────────────────────
 
-def fetch_github_profile() -> GitHubProfile:
-    """Fetch full GitHub profile and all repo snapshots."""
+def fetch_github_profile(force_refresh: bool = False) -> GitHubProfile:
+    """
+    Fetch full GitHub profile and all repo snapshots.
+    Uses a 1-hour local cache to avoid redundant API calls.
+    Set force_refresh=True to bypass cache.
+    """
+    if not force_refresh:
+        cached = _load_cache()
+        if cached:
+            return cached
+
     logger.info(f"Fetching GitHub profile for: {_get_username()}")
 
     # Get user info
@@ -134,6 +179,7 @@ def fetch_github_profile() -> GitHubProfile:
     )
 
     logger.success(f"Profile built — {len(repos)} repos found")
+    _save_cache(profile)
     return profile
 
 

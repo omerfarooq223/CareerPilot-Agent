@@ -120,3 +120,36 @@ def get_full_memory():
         "linkedin_posts": [{"id":r[0],"timestamp":r[1],"post_type":r[2],
             "repo_name":r[3],"post_content":r[4],"status":r[5]} for r in linkedin_rows]
     }
+
+@router.post("/feedback")
+def submit_feedback(body: FeedbackRequest):
+    """Save user feedback for a skill output."""
+    init_db()
+    save_feedback(body.skill_name, body.output_file, body.rating, body.comment)
+    return {"status": "ok", "rating": body.rating}
+
+@router.get("/feedback/summary")
+def feedback_summary():
+    """Return aggregated thumbs up/down per skill."""
+    init_db()
+    return {"feedback": get_feedback_summary()}
+
+
+class OutcomeRequest(BaseModel):
+    company: str
+    role: str
+    status: str
+    notes: str = ""
+
+@router.post("/outcomes")
+def add_outcome(body: OutcomeRequest):
+    """Log a job application outcome."""
+    init_db()
+    log_outcome(body.company, body.role, body.status, body.notes)
+    return {"status": "ok"}
+
+@router.get("/outcomes")
+def list_outcomes():
+    """Return all logged outcomes."""
+    init_db()
+    return {"outcomes": get_outcomes(), "stats": get_outcome_stats()}

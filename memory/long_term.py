@@ -230,6 +230,171 @@ def get_gap_trend() -> dict:
 import json
 from pathlib import Path
 
+def log_outcome(company: str, role: str, status: str, notes: str = "") -> None:
+    """Log a job application outcome."""
+    history = get_score_history()
+    score = history[-1]["score"] if history else None
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO outcomes (timestamp, company, role, status, score_at_time, applied_date, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (datetime.now().isoformat(), company, role, status, score,
+          datetime.now().strftime("%Y-%m-%d"), notes))
+    conn.commit()
+    conn.close()
+    logger.info(f"Outcome logged: {company} — {status}")
+
+
+def get_outcomes() -> list[dict]:
+    """Return all logged outcomes ordered by date."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, timestamp, company, role, status, score_at_time, applied_date, notes
+        FROM outcomes ORDER BY timestamp DESC
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    return [
+        {
+            "id": r[0], "timestamp": r[1], "company": r[2],
+            "role": r[3], "status": r[4], "score_at_time": r[5],
+            "applied_date": r[6], "notes": r[7]
+        }
+        for r in rows
+    ]
+
+
+def get_outcome_stats() -> dict:
+    """Return outcome statistics — response rates by score."""
+    outcomes = get_outcomes()
+    if not outcomes:
+        return {"total": 0, "by_status": {}, "by_score": {}}
+
+    by_status = {}
+    by_score  = {}
+
+    for o in outcomes:
+        status = o["status"]
+        score  = o["score_at_time"]
+        by_status[status] = by_status.get(status, 0) + 1
+        if score:
+            if score not in by_score:
+                by_score[score] = {"applied": 0, "responses": 0}
+            by_score[score]["applied"] += 1
+            if status in ["interview", "offer"]:
+                by_score[score]["responses"] += 1
+
+    return {
+        "total":     len(outcomes),
+        "by_status": by_status,
+        "by_score":  by_score,
+    }
+
+
+def log_outcome(company: str, role: str, status: str, notes: str = "") -> None:
+    """Log a job application outcome."""
+    history = get_score_history()
+    score = history[-1]["score"] if history else None
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO outcomes (timestamp, company, role, status, score_at_time, applied_date, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (datetime.now().isoformat(), company, role, status, score,
+          datetime.now().strftime("%Y-%m-%d"), notes))
+    conn.commit()
+    conn.close()
+    logger.info(f"Outcome logged: {company} — {status}")
+
+
+def get_outcomes() -> list[dict]:
+    """Return all logged outcomes ordered by date."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, timestamp, company, role, status, score_at_time, applied_date, notes
+        FROM outcomes ORDER BY timestamp DESC
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    return [
+        {
+            "id": r[0], "timestamp": r[1], "company": r[2],
+            "role": r[3], "status": r[4], "score_at_time": r[5],
+            "applied_date": r[6], "notes": r[7]
+        }
+        for r in rows
+    ]
+
+
+def get_outcome_stats() -> dict:
+    """Return outcome statistics — response rates by score."""
+    outcomes = get_outcomes()
+    if not outcomes:
+        return {"total": 0, "by_status": {}, "by_score": {}}
+
+    by_status = {}
+    by_score  = {}
+
+    for o in outcomes:
+        status = o["status"]
+        score  = o["score_at_time"]
+        by_status[status] = by_status.get(status, 0) + 1
+        if score:
+            if score not in by_score:
+                by_score[score] = {"applied": 0, "responses": 0}
+            by_score[score]["applied"] += 1
+            if status in ["interview", "offer"]:
+                by_score[score]["responses"] += 1
+
+    return {
+        "total":     len(outcomes),
+        "by_status": by_status,
+        "by_score":  by_score,
+    }
+
+
+def save_feedback(skill_name: str, output_file: str, rating: int, comment: str = "") -> None:
+    """Save user feedback (thumbs up/down) for a skill output."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO skill_feedback (timestamp, skill_name, output_file, rating, comment)
+        VALUES (?, ?, ?, ?, ?)
+    """, (datetime.now().isoformat(), skill_name, output_file, rating, comment))
+    conn.commit()
+    conn.close()
+    logger.info(f"Feedback saved: {skill_name} → {'👍' if rating == 1 else '👎'}")
+
+
+def get_feedback_summary() -> list[dict]:
+    """Return aggregated feedback per skill."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT skill_name,
+               COUNT(*) as total,
+               SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) as thumbs_up,
+               SUM(CASE WHEN rating = -1 THEN 1 ELSE 0 END) as thumbs_down
+        FROM skill_feedback
+        GROUP BY skill_name
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    return [
+        {
+            "skill": r[0],
+            "total": r[1],
+            "thumbs_up": r[2],
+            "thumbs_down": r[3],
+            "score": round((r[2] / r[1]) * 100) if r[1] > 0 else 0
+        }
+        for r in rows
+    ]
+
+
 def export_latest_snapshot():
     """Export latest data to a JSON file that GitHub Actions can read."""
     snapshot = get_last_snapshot()

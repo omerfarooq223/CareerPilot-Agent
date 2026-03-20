@@ -1182,6 +1182,43 @@
     font-size: 11px; color: var(--slate-400); margin-top: 2px;
   }
 
+  /* ── Feedback buttons ── */
+  .feedback-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0 0;
+    margin-top: 12px;
+    border-top: 1px solid var(--slate-100);
+  }
+  .feedback-label {
+    font-size: 11px;
+    color: var(--slate-400);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .feedback-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--slate-200);
+    background: var(--white);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--slate-500);
+    font-family: "Plus Jakarta Sans", sans-serif;
+    transition: all 0.15s;
+  }
+  .feedback-btn:hover { border-color: var(--slate-300); background: var(--slate-50); }
+  .feedback-btn.up:hover   { border-color: var(--green-border); color: var(--green); background: var(--green-light); }
+  .feedback-btn.down:hover { border-color: var(--red-border);   color: var(--red);   background: var(--red-light); }
+  .feedback-btn.selected-up   { border-color: var(--green-border); color: var(--green); background: var(--green-light); }
+  .feedback-btn.selected-down { border-color: var(--red-border);   color: var(--red);   background: var(--red-light); }
+
   /* ── Memory section ── */
   .mem-section {
     margin-bottom: 24px;
@@ -1309,6 +1346,7 @@
       <button class="output-tab active" onclick="switchTab('current')" id="tab-current">Current Output</button>
       <button class="output-tab" onclick="switchTab('memory')" id="tab-memory">Memory</button>
       <button class="output-tab" onclick="switchTab('log')" id="tab-log">Action Log</button>
+      <button class="output-tab" onclick="switchTab('outcomes')" id="tab-outcomes">Outcomes</button>
     </div>
 
     <!-- Tab panels -->
@@ -1329,6 +1367,12 @@
     <div class="output-body tab-panel" id="panel-memory" style="display:none;">
       <div id="memoryPanel">
         <div style="color:var(--slate-300);font-size:12px;">Loading memory...</div>
+      </div>
+    </div>
+
+    <div class="output-body tab-panel" id="panel-outcomes" style="display:none;">
+      <div id="outcomesPanel">
+        <div style="color:var(--slate-300);font-size:12px;">Loading outcomes...</div>
       </div>
     </div>
 
@@ -1360,13 +1404,15 @@ async function init() {
 
 // ── Tab switching ─────────────────────────────────────────────────
 function switchTab(tab) {
-  document.getElementById('outputBody').style.display    = tab === 'current' ? 'block' : 'none';
-  document.getElementById('panel-memory').style.display  = tab === 'memory'  ? 'block' : 'none';
-  document.getElementById('panel-log').style.display     = tab === 'log'     ? 'block' : 'none';
+  document.getElementById('outputBody').style.display      = tab === 'current'  ? 'block' : 'none';
+  document.getElementById('panel-memory').style.display    = tab === 'memory'   ? 'block' : 'none';
+  document.getElementById('panel-log').style.display       = tab === 'log'      ? 'block' : 'none';
+  document.getElementById('panel-outcomes').style.display  = tab === 'outcomes' ? 'block' : 'none';
   document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
   document.getElementById(`tab-${tab}`).classList.add('active');
-  if (tab === 'memory') loadMemory();
-  if (tab === 'log')    loadActionLog();
+  if (tab === 'memory')   loadMemory();
+  if (tab === 'log')      loadActionLog();
+  if (tab === 'outcomes') loadOutcomes();
 }
 
 // ── Stop button ───────────────────────────────────────────────────
@@ -1766,11 +1812,22 @@ function setMeta(text, success=false) {
   document.getElementById('outputBadge').className  = success ? 'output-badge' : 'output-badge pending';
 }
 
-function renderMarkdown(title, text) {
+function renderMarkdown(title, text, skillId = '', outputFile = '') {
   document.getElementById('outputTitle').textContent = title;
   setMeta('Complete', true);
   const html = marked.parse(text);
-  document.getElementById('outputBody').innerHTML = `<div class="output-content">${html}</div>`;
+  const feedbackBar = skillId ? `
+    <div class="feedback-bar" id="feedback-${skillId}">
+      <span class="feedback-label">Was this helpful?</span>
+      <button class="feedback-btn up" onclick="submitFeedback('${skillId}', '${outputFile}', 1, this)">
+        👍 Yes
+      </button>
+      <button class="feedback-btn down" onclick="submitFeedback('${skillId}', '${outputFile}', -1, this)">
+        👎 No
+      </button>
+    </div>` : '';
+  document.getElementById('outputBody').innerHTML =
+    `<div class="output-content">${html}${feedbackBar}</div>`;
 }
 
 function renderLinkedIn(text) {
@@ -1828,6 +1885,125 @@ function renderAgentResult(data) {
     const f = document.getElementById('heroFill');
     if (f) f.style.width = `${data.score * 10}%`;
   }, 200);
+}
+
+async function loadOutcomes() {
+  const panel = document.getElementById('outcomesPanel');
+  try {
+    const res  = await fetch(`${API}/api/outcomes`);
+    const data = await res.json();
+    const stats = data.stats;
+    const outcomes = data.outcomes;
+
+    const statusColors = {
+      applied:      { bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8' },
+      no_response:  { bg: 'var(--slate-100)', border: 'var(--slate-200)', text: 'var(--slate-500)' },
+      interview:    { bg: '#fef9c3', border: '#fde68a', text: '#92400e' },
+      offer:        { bg: 'var(--green-light)', border: 'var(--green-border)', text: 'var(--green)' },
+      rejected:     { bg: 'var(--red-light)', border: 'var(--red-border)', text: 'var(--red)' },
+    };
+
+    const statsHtml = stats.total ? `
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+        <div style="background:var(--blue-faint);border:1px solid #bae6fd;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;color:var(--blue-dark);">
+          ${stats.total} total applications
+        </div>
+        ${Object.entries(stats.by_status).map(([s,c]) => {
+          const col = statusColors[s] || statusColors.applied;
+          return `<div style="background:${col.bg};border:1px solid ${col.border};border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;color:${col.text};">
+            ${c} ${s.replace(/_/g,' ')}
+          </div>`;
+        }).join('')}
+      </div>` : '';
+
+    const formHtml = `
+      <div style="background:var(--white);border:1px solid var(--slate-200);border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+        <div style="font-size:12px;font-weight:700;color:var(--slate-500);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">
+          Log New Application
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <input id="oc-company" placeholder="Company (e.g. Arbisoft)"
+            style="padding:8px 12px;border:1px solid var(--slate-200);border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
+          <input id="oc-role" placeholder="Role (e.g. AI/ML Intern)"
+            style="padding:8px 12px;border:1px solid var(--slate-200);border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <select id="oc-status" style="padding:8px 12px;border:1px solid var(--slate-200);border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
+            <option value="applied">Applied</option>
+            <option value="no_response">No Response</option>
+            <option value="interview">Got Interview</option>
+            <option value="offer">Got Offer</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <input id="oc-notes" placeholder="Notes (optional)"
+            style="padding:8px 12px;border:1px solid var(--slate-200);border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
+        </div>
+        <button onclick="addOutcome()"
+          style="padding:8px 20px;background:var(--blue);color:white;border:none;border-radius:8px;
+                 font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">
+          Log Application
+        </button>
+      </div>`;
+
+    const listHtml = outcomes.length ? outcomes.map(o => {
+      const col = statusColors[o.status] || statusColors.applied;
+      return `
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;
+                    background:var(--white);border:1px solid var(--slate-200);
+                    border-radius:10px;margin-bottom:6px;">
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:600;color:var(--slate-900);">
+              ${o.company} — ${o.role}
+            </div>
+            <div style="font-size:11px;color:var(--slate-400);margin-top:2px;font-family:'JetBrains Mono',monospace;">
+              ${o.applied_date} · Score at time: ${o.score_at_time || 'N/A'}/10
+              ${o.notes ? ' · ' + o.notes : ''}
+            </div>
+          </div>
+          <span style="background:${col.bg};border:1px solid ${col.border};color:${col.text};
+                       padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">
+            ${o.status.replace(/_/g,' ')}
+          </span>
+        </div>`;
+    }).join('') : '<div style="color:var(--slate-300);font-size:12px;padding:20px 0;">No applications logged yet.</div>';
+
+    panel.innerHTML = statsHtml + formHtml + listHtml;
+  } catch(e) {
+    panel.innerHTML = '<div class="error-box" style="font-size:11px;">Could not load outcomes</div>';
+  }
+}
+
+async function addOutcome() {
+  const company = document.getElementById('oc-company')?.value?.trim();
+  const role    = document.getElementById('oc-role')?.value?.trim();
+  const status  = document.getElementById('oc-status')?.value;
+  const notes   = document.getElementById('oc-notes')?.value?.trim();
+  if (!company || !role) { showToast('Company and role are required'); return; }
+  try {
+    await fetch(`${API}/api/outcomes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ company, role, status, notes })
+    });
+    showToast(`✓ Logged: ${company}`);
+    loadOutcomes();
+  } catch(e) { showToast('Could not save outcome'); }
+}
+
+async function submitFeedback(skillId, outputFile, rating, btn) {
+  try {
+    await fetch(`${API}/api/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ skill_name: skillId, output_file: outputFile, rating, comment: '' })
+    });
+    const bar = document.getElementById(`feedback-${skillId}`);
+    if (bar) {
+      bar.querySelectorAll('.feedback-btn').forEach(b => b.classList.remove('selected-up','selected-down'));
+      btn.classList.add(rating === 1 ? 'selected-up' : 'selected-down');
+    }
+    showToast(rating === 1 ? '👍 Feedback saved' : '👎 Feedback saved');
+  } catch(e) { showToast('Could not save feedback'); }
 }
 
 function showError(msg) {
