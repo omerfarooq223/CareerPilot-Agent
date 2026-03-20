@@ -79,6 +79,7 @@ preferred_stack:
 | `mock_interview_prep` | Role-specific interview questions | `output/mock_interview_prep.md` |
 | `weekly_nudge` | Honest weekly progress report | `output/weekly_nudge.md` |
 | `linkedin_writer` | HITL LinkedIn post generator with post memory | `output/linkedin_<type>_<repo>.md` |
+| `update_goals` | Auto-syncs shipped_projects and skills from GitHub | `config/goals.yaml` |
 
 ---
 
@@ -129,6 +130,7 @@ careerpilot/
 │   ├── short_term.py               # SessionMemory — current run state
 │   └── long_term.py                # SQLite — snapshots, action log, LinkedIn history
 │   └── latest_snapshot.json        # Auto-generated — read by GitHub Actions
+│   └── github_cache.json        # gitignored — auto-generated, 1hr TTL
 ├── planner/
 │   └── reasoner.py                 # Groq-powered autonomous planner
 ├── actions/
@@ -173,6 +175,7 @@ careerpilot/
 | **Testing** | pytest |
 | **Scheduling** | GitHub Actions (weekly reminder) |
 | **Deployment** | Railway (free tier) |
+| **Caching** | Local JSON (1hr GitHub cache) |
 
 ---
 

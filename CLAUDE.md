@@ -97,6 +97,7 @@ careerpilot/
 - **`executor.py` is a dispatcher only** — no skill logic lives there
 - **Never overwrite previous audit files** — `audit_repo` saves to `audit_<repo>.md` and comparison to `audit_<repo>_comparison.md`
 - **All core functions must have docstrings and return type annotations**
+- **`memory/github_cache.json`** is auto-generated and gitignored — do not commit it
 
 ---
 

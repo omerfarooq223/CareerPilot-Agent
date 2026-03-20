@@ -208,5 +208,9 @@ See `CLAUDE.md → How to add a new skill`
 - [x] goals.yaml auto-updater — syncs shipped_projects and skills from GitHub
 - [x] GitHub Actions weekly email reminder
 - [x] Railway deployment — live at https://web-production-e1faa.up.railway.app
+- [x] GitHub data caching (1hr TTL, memory/github_cache.json)
+- [x] User feedback loop — thumbs up/down per skill, feeds into planner
+- [x] Outcome tracker — log applications with score correlation
+- [x] Docstrings and return type annotations on core modules
 - [ ] Persistent memory on Railway
 - [ ] Docker containerization
