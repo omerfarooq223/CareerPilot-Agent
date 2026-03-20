@@ -44,6 +44,30 @@ def init_db() -> None:
         status TEXT        -- 'approved', 'discarded', 'regenerated'
         )
     """) 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS skill_feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            skill_name TEXT,
+            output_file TEXT,
+            rating INTEGER,
+            comment TEXT
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS outcomes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            company TEXT NOT NULL,
+            role TEXT NOT NULL,
+            status TEXT NOT NULL,
+            score_at_time INTEGER,
+            applied_date TEXT,
+            notes TEXT
+        )
+    """)
+
     conn.commit()
     conn.close()
     logger.info("Database initialized")

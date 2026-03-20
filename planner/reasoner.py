@@ -8,7 +8,7 @@ from loguru import logger
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from memory.short_term import SessionMemory
-from memory.long_term import get_last_snapshot, get_score_history, get_gap_trend
+from memory.long_term import get_last_snapshot, get_score_history, get_gap_trend, get_feedback_summary
 
 load_dotenv(dotenv_path="config/.env")
 
@@ -76,6 +76,15 @@ def make_plan(session: SessionMemory) -> AgentPlan:
             "strengths": session.gap_report.strengths
         }, indent=2)
 
+    # Feedback history — what the user found useful
+    feedback = get_feedback_summary()
+    feedback_context = ""
+    if feedback:
+        liked    = [f["skill"] for f in feedback if f["score"] >= 70]
+        disliked = [f["skill"] for f in feedback if f["score"] < 40]
+        if liked:    feedback_context += f"Skills user found USEFUL: {liked}. Prioritize these.\n"
+        if disliked: feedback_context += f"Skills user found NOT USEFUL: {disliked}. Avoid these unless critical."
+
     # Actions already taken this session
     taken = session.actions_taken if session.actions_taken else ["none yet"]
 
@@ -89,6 +98,9 @@ student's current state. Be decisive, specific, and avoid repeating past actions
 
 --- CURRENT GAP ANALYSIS ---
 {gap_context}
+
+--- USER FEEDBACK ON PAST SKILLS ---
+{feedback_context if feedback_context else "No feedback recorded yet."}
 
 --- ACTIONS ALREADY TAKEN THIS SESSION ---
 {json.dumps(taken)}

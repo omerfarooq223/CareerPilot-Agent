@@ -2,9 +2,17 @@ import sys, os, sqlite3, json
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from fastapi import APIRouter
-from memory.long_term import init_db, get_last_snapshot, get_score_history, get_linkedin_post_history, DB_PATH
+from pydantic import BaseModel
+from memory.long_term import init_db, get_last_snapshot, get_score_history, get_linkedin_post_history, DB_PATH, get_gap_trend, save_feedback, get_feedback_summary, log_outcome, get_outcomes, get_outcome_stats
 
 router = APIRouter()
+
+# --- FeedbackRequest model for feedback endpoint ---
+class FeedbackRequest(BaseModel):
+    skill_name: str
+    output_file: str
+    rating: int
+    comment: str = ""
 
 @router.get("/dashboard")
 def get_dashboard():

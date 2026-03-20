@@ -1745,7 +1745,10 @@ async function runSkill(skillId, repoName = null) {
     if (!res.ok) throw new Error(data.detail || 'Skill failed');
 
     if (skillId === 'linkedin_writer') renderLinkedIn(data.result);
-    else renderMarkdown(label, data.result);
+    else {
+      const outputFile = skillId + '_output.md';
+      renderMarkdown(label, data.result, skillId, outputFile);
+    }
 
     setMeta(`Score: ${data.score}/10`, true);
     showToast(`${label} complete`);
