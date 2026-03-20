@@ -8,3 +8,4 @@ output/
 memory/careerpilot.db
 memory/__pycache__/
 !memory/latest_snapshot.json
+memory/github_cache.json
