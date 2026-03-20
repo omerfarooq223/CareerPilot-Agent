@@ -22,6 +22,11 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 @retry(max_attempts=3, delay=2.0)
 @timeout(seconds=30)
 def call_groq(prompt: str, max_tokens: int = 2000) -> str:
+    """
+    Make a rate-limited, retried call to Groq API.
+    Wrapped with @retry and @timeout from error_handler.
+    Returns the model's response as a plain string.
+    """
     groq_limiter.wait()
     response = client.chat.completions.create(
         model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
@@ -33,6 +38,11 @@ def call_groq(prompt: str, max_tokens: int = 2000) -> str:
 
 
 def save_output(filename: str, content: str) -> Path:
+    """
+    Safely write content to output/ directory.
+    Applies path traversal protection and secret scrubbing before writing.
+    Returns the resolved Path of the saved file.
+    """
     path = safe_output_path(filename)         # path traversal guard
     content = scrub_secrets(content)          # scrub any leaked secrets
     path.write_text(content, encoding="utf-8")
@@ -64,7 +74,12 @@ registry.register("update_goals", "Auto-update goals.yaml from GitHub profile")(
 
 # ── Dispatcher ─────────────────────────────────────────────────────────────────
 
-def execute_plan(actions: list[str], session: SessionMemory):
+def execute_plan(actions: list[str], session: SessionMemory) -> None:
+    """
+    Execute a list of skill actions in order via the skill registry.
+    Handles unknown skills, disabled skills, and runtime errors gracefully.
+    Each action logs itself to SQLite and session memory on success.
+    """
     """Execute a list of actions using the skill registry."""
     for action in actions:
         try:

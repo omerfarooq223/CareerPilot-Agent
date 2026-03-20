@@ -29,8 +29,17 @@ class AgentPlan(BaseModel):
 
 def make_plan(session: SessionMemory) -> AgentPlan:
     """
-    Look at current session state + long-term memory
-    and decide what the agent should do next.
+    Autonomous planner — decides what the agent should do next.
+
+    Reads current gap report, score history, and gap trend from memory.
+    Sends structured context to Groq which returns an ordered list of
+    actions to execute, skip reasons, and a direct message to the user.
+
+    Args:
+        session: Current SessionMemory containing profile and gap report.
+
+    Returns:
+        AgentPlan with ordered actions, skip reasons, and priority action.
     """
     logger.info("Planner is reasoning over current state...")
 

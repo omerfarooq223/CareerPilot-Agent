@@ -9,7 +9,8 @@ import os
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "careerpilot.db")
 
 
-def init_db():
+def init_db() -> None:
+    """Initialize SQLite database and create tables if they do not exist."""
     """Create the database and tables if they don't exist."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -49,7 +50,8 @@ def init_db():
     seed_from_snapshot()
 
 
-def save_snapshot(report: GapReport):
+def save_snapshot(report: GapReport) -> None:
+    """Persist a GapReport snapshot to the weekly_snapshots table."""
     """Save a gap report snapshot to long-term memory."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -71,7 +73,8 @@ def save_snapshot(report: GapReport):
     logger.success(f"Snapshot saved — score: {report.overall_score}/10")
 
 
-def log_action(action_type: str, description: str):
+def log_action(action_type: str, description: str) -> None:
+    """Log an agent action to the actions_log table."""
     """Log an agent action to memory."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -84,6 +87,7 @@ def log_action(action_type: str, description: str):
 
 
 def get_last_snapshot() -> dict | None:
+    """Return the most recent weekly snapshot as a dict, or None if empty."""
     """Retrieve the most recent snapshot."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -107,6 +111,7 @@ def get_last_snapshot() -> dict | None:
 
 
 def get_score_history() -> list[dict]:
+    """Return all historical scores ordered chronologically."""
     """Get all scores over time to track progress."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -179,6 +184,7 @@ def get_last_post_date() -> str | None:
     return row[0] if row else None
 
 def get_gap_trend() -> dict:
+    """Compare last two snapshots to show closed, new, and persisted gaps."""
     """Compare current gaps with previous session to show what changed."""
     history = get_score_history()
     if len(history) < 2:

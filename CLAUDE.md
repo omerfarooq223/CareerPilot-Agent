@@ -96,6 +96,7 @@ careerpilot/
 - **`load_dotenv()` uses absolute paths** via `Path(__file__).resolve()` — never relative
 - **`executor.py` is a dispatcher only** — no skill logic lives there
 - **Never overwrite previous audit files** — `audit_repo` saves to `audit_<repo>.md` and comparison to `audit_<repo>_comparison.md`
+- **All core functions must have docstrings and return type annotations**
 
 ---
 

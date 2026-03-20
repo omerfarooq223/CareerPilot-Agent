@@ -28,6 +28,7 @@ class GapReport(BaseModel):
 # ── Loader ─────────────────────────────────────────────────────────────────────
 
 def load_goals() -> dict:
+    """Load and return the user's goals configuration from goals.yaml."""
     with open("config/goals.yaml", "r") as f:
         return yaml.safe_load(f)
 
@@ -35,6 +36,11 @@ def load_goals() -> dict:
 # ── Analyzer ───────────────────────────────────────────────────────────────────
 
 def analyze_gaps(profile: GitHubProfile) -> GapReport:
+    """
+    Send the GitHub profile and goals to Groq for gap analysis.
+    Returns a structured GapReport with hirability score, gaps, and actions.
+    Uses temperature=0.0 and a fixed rubric for consistent scoring.
+    """
     goals = load_goals()
 
     logger.info("Sending profile + goals to Groq for gap analysis...")
