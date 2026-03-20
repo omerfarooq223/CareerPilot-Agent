@@ -1182,6 +1182,84 @@
     font-size: 11px; color: var(--slate-400); margin-top: 2px;
   }
 
+  /* ── Page animations ── */
+  @keyframes slideInLeft { from{opacity:0;transform:translateX(-20px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes slideInRight { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes slideInUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes scaleIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  @keyframes fadeOut { from{opacity:1} to{opacity:0} }
+  @keyframes pulseBlue {
+    0%,100%{box-shadow:0 0 0 0 rgba(14,165,233,0.4)}
+    50%{box-shadow:0 0 0 8px rgba(14,165,233,0)}
+  }
+  header { animation: slideInUp 0.4s ease both; }
+  .sidebar { animation: slideInLeft 0.5s ease 0.1s both; }
+  .output-panel { animation: slideInRight 0.5s ease 0.1s both; }
+  .skill-btn { transition: all 0.18s cubic-bezier(0.4,0,0.2,1); }
+  .skill-btn:hover { transform: translateX(3px); }
+  #runAutoBtn { animation: pulseBlue 2.5s ease-in-out infinite; }
+  #runAutoBtn:hover { animation: none; transform: translateY(-2px) scale(1.02); }
+  .score-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .score-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .result-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .result-card:hover { transform: translateY(-2px); }
+
+  /* ── Onboarding ── */
+  #onboarding {
+    position:fixed;inset:0;background:rgba(15,23,42,0.75);
+    backdrop-filter:blur(6px);z-index:1000;
+    display:flex;align-items:center;justify-content:center;
+    animation:fadeIn 0.4s ease;
+  }
+  #onboarding.hiding { animation:fadeOut 0.35s ease forwards; }
+  .ob-card {
+    background:var(--white);border-radius:20px;padding:40px 44px;
+    max-width:560px;width:90%;box-shadow:0 24px 64px rgba(15,23,42,0.2);
+    animation:scaleIn 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;
+  }
+  .ob-step-dots { display:flex;gap:6px;margin-bottom:28px; }
+  .ob-dot {
+    width:6px;height:6px;border-radius:50%;
+    background:var(--slate-200);transition:all 0.3s ease;
+  }
+  .ob-dot.active { width:20px;border-radius:3px;background:var(--blue); }
+  .ob-icon {
+    width:56px;height:56px;border-radius:14px;background:var(--blue-faint);
+    border:1px solid #bae6fd;display:flex;align-items:center;
+    justify-content:center;font-size:26px;margin-bottom:20px;
+  }
+  .ob-title {
+    font-size:22px;font-weight:800;color:var(--slate-900);
+    letter-spacing:-0.5px;margin-bottom:10px;line-height:1.2;
+  }
+  .ob-desc { font-size:14px;color:var(--slate-500);line-height:1.7;margin-bottom:28px; }
+  .ob-desc strong { color:var(--slate-900);font-weight:600; }
+  .ob-loop { display:flex;gap:4px;margin:16px 0 24px;align-items:center;flex-wrap:wrap; }
+  .ob-loop-step {
+    background:var(--blue-faint);border:1px solid #bae6fd;border-radius:6px;
+    padding:4px 10px;font-size:12px;font-weight:600;color:var(--blue-dark);
+    font-family:"JetBrains Mono",monospace;
+  }
+  .ob-loop-arrow { color:var(--slate-300);font-size:12px;margin:0 2px; }
+  .ob-features { list-style:none;margin:12px 0 24px;padding:0;display:flex;flex-direction:column;gap:8px; }
+  .ob-features li { display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--slate-600);line-height:1.5; }
+  .ob-features li::before { content:"";width:6px;height:6px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:5px; }
+  .ob-actions { display:flex;align-items:center;justify-content:space-between; }
+  .ob-skip { font-size:13px;color:var(--slate-400);cursor:pointer;background:none;border:none;font-family:"Plus Jakarta Sans",sans-serif;transition:color 0.15s; }
+  .ob-skip:hover { color:var(--slate-600); }
+  .ob-next {
+    display:flex;align-items:center;gap:8px;padding:11px 24px;
+    background:var(--blue);color:white;border:none;border-radius:10px;
+    font-family:"Plus Jakarta Sans",sans-serif;font-size:14px;font-weight:600;
+    cursor:pointer;transition:all 0.2s;box-shadow:0 2px 8px rgba(14,165,233,0.3);
+  }
+  .ob-next:hover { background:var(--blue-dark);transform:translateY(-1px); }
+  .ob-next.finish { background:var(--green);box-shadow:0 2px 8px rgba(5,150,105,0.3); }
+  .ob-next.finish:hover { background:#047857; }
+  .ob-content { transition:opacity 0.2s ease,transform 0.2s ease; }
+  .ob-content.transitioning { opacity:0;transform:translateX(10px); }
+
   /* ── Memory section ── */
   .mem-section {
     margin-bottom: 24px;
@@ -1200,6 +1278,31 @@
     border-bottom: 1px solid var(--slate-200);
   }
   .mem-section-header span { font-size: 14px; }
+  /* ── Feedback bar ── */
+  .feedback-bar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; margin-top: 20px;
+    background: var(--slate-50); border: 1px solid var(--slate-200);
+    border-radius: 10px;
+  }
+  .feedback-label {
+    font-size: 13px; font-weight: 500; color: var(--slate-500); flex: 1;
+  }
+  .feedback-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 16px; border-radius: 8px;
+    border: 1px solid var(--slate-200); background: var(--white);
+    cursor: pointer; font-size: 13px; font-weight: 600;
+    color: var(--slate-600); font-family: "Plus Jakarta Sans", sans-serif;
+    transition: all 0.15s; box-shadow: var(--shadow-sm);
+  }
+  .feedback-btn:hover { border-color: var(--slate-300); transform: translateY(-1px); }
+  .feedback-btn.up:hover, .feedback-btn.selected-up {
+    border-color: var(--green-border); color: var(--green); background: var(--green-light);
+  }
+  .feedback-btn.down:hover, .feedback-btn.selected-down {
+    border-color: var(--red-border); color: var(--red); background: var(--red-light);
+  }
 </style>
 </head>
 <body>
@@ -1212,6 +1315,22 @@
      style="color:#92400e;font-weight:700;margin-left:6px;">
      Clone the repo to analyze your own profile →
   </a>
+</div>
+
+<!-- Onboarding -->
+<div id="onboarding" style="display:none;">
+  <div class="ob-card">
+    <div class="ob-step-dots">
+      <div class="ob-dot active" id="dot-0"></div>
+      <div class="ob-dot" id="dot-1"></div>
+      <div class="ob-dot" id="dot-2"></div>
+    </div>
+    <div class="ob-content" id="ob-content"></div>
+    <div class="ob-actions">
+      <button class="ob-skip" onclick="closeOnboarding()">Skip tour</button>
+      <button class="ob-next" id="ob-next-btn" onclick="obNext()">Next →</button>
+    </div>
+  </div>
 </div>
 
 <!-- Header -->
@@ -1356,6 +1475,70 @@ const API = '';
 let repos = [];
 let currentController = null;
 
+const OB_STEPS = [
+  {
+    icon: '🤖',
+    title: 'Meet CareerPilot',
+    body: `<p class="ob-desc">An <strong>autonomous AI agent</strong> that reads your GitHub profile, identifies skill gaps, and coaches you toward landing your target internship.<br><br>This demo runs on the developer's <strong>real GitHub profile</strong> — everything you see is live data.</p>`
+  },
+  {
+    icon: '⚡',
+    title: 'The Agentic Loop',
+    body: `<p class="ob-desc">Every run executes a full autonomous cycle:</p>
+    <div class="ob-loop">
+      <span class="ob-loop-step">Observe</span><span class="ob-loop-arrow">→</span>
+      <span class="ob-loop-step">Analyze</span><span class="ob-loop-arrow">→</span>
+      <span class="ob-loop-step">Remember</span><span class="ob-loop-arrow">→</span>
+      <span class="ob-loop-step">Plan</span><span class="ob-loop-arrow">→</span>
+      <span class="ob-loop-step">Act</span>
+    </div>
+    <p class="ob-desc" style="margin-bottom:0;">Click <strong>⚡ Run Agent</strong> to watch it decide autonomously — no prompting required.</p>`
+  },
+  {
+    icon: '🎯',
+    title: 'What You Can Do',
+    body: `<ul class="ob-features">
+      <li>Run the full agent loop and watch it reason autonomously</li>
+      <li>Pick any skill manually — audit a repo, generate a dev card, prep for interviews</li>
+      <li>See the Progress tab for score history and readiness metrics</li>
+      <li>Log job applications and track outcomes over time</li>
+    </ul>
+    <p class="ob-desc" style="margin-bottom:0;font-size:12px;">Want to run it on your own GitHub? <a href="https://github.com/omerfarooq223/CareerPilot-Agent" style="color:var(--blue);font-weight:600;">Clone the repo →</a></p>`
+  }
+];
+let obStep = 0;
+
+function renderObStep() {
+  const step = OB_STEPS[obStep];
+  const el   = document.getElementById('ob-content');
+  const btn  = document.getElementById('ob-next-btn');
+  el.classList.add('transitioning');
+  setTimeout(() => {
+    el.innerHTML = `<div class="ob-icon">${step.icon}</div><div class="ob-title">${step.title}</div>${step.body}`;
+    el.classList.remove('transitioning');
+  }, 200);
+  OB_STEPS.forEach((_,i) => {
+    const d = document.getElementById('dot-'+i);
+    if(d) d.classList.toggle('active', i===obStep);
+  });
+  if(obStep === OB_STEPS.length-1) { btn.textContent="Let's go 🚀"; btn.classList.add('finish'); }
+  else { btn.textContent='Next →'; btn.classList.remove('finish'); }
+}
+function obNext() {
+  if(obStep < OB_STEPS.length-1) { obStep++; renderObStep(); }
+  else closeOnboarding();
+}
+function closeOnboarding() {
+  const el = document.getElementById('onboarding');
+  el.classList.add('hiding');
+  setTimeout(() => { el.style.display='none'; }, 350);
+  localStorage.setItem('cp_onboarded','1');
+}
+function showOnboarding() {
+  document.getElementById('onboarding').style.display='flex';
+  obStep=0; renderObStep();
+}
+
 // Configure marked
 marked.setOptions({ breaks: true, gfm: true });
 
@@ -1363,6 +1546,9 @@ async function init() {
   await loadDashboard();
   await loadSkills();
   await loadRepos();
+  if (!localStorage.getItem('cp_onboarded')) {
+    setTimeout(showOnboarding, 1500);
+  }
 }
 
 // ── Tab switching ─────────────────────────────────────────────────
@@ -1945,16 +2131,20 @@ function setMeta(text, success=false) {
   document.getElementById('outputBadge').className  = success ? 'output-badge' : 'output-badge pending';
 }
 
-function renderMarkdown(title, text, skillId = '', outputFile = '') {
+function renderMarkdown(title, text, skillId = 'debug-id', outputFile = 'debug-file') {
   document.getElementById('outputTitle').textContent = title;
   setMeta('Complete', true);
+  
   const html = marked.parse(text);
-  const feedbackBar = skillId ? `
+  const feedbackBar = `
     <div class="feedback-bar" id="feedback-${skillId}">
       <span class="feedback-label">Was this helpful?</span>
-      <button class="feedback-btn up" onclick="submitFeedback('${skillId}', '${outputFile}', 1, this)">👍 Yes</button>
-      <button class="feedback-btn down" onclick="submitFeedback('${skillId}', '${outputFile}', -1, this)">👎 No</button>
-    </div>` : '';
+      <div class="feedback-actions">
+        <button class="feedback-btn up" onclick="submitFeedback('${skillId}', '${outputFile}', 1, this)">👍 Helpful</button>
+        <button class="feedback-btn down" onclick="submitFeedback('${skillId}', '${outputFile}', -1, this)">👎 Not helpful</button>
+      </div>
+    </div>`;
+
   document.getElementById('outputBody').innerHTML =
     `<div class="output-content">${html}${feedbackBar}</div>`;
 }
@@ -2017,19 +2207,145 @@ function renderAgentResult(data) {
 }
 
 async function submitFeedback(skillId, outputFile, rating, btn) {
+  // 1. Prevent double-submissions if already loading or selected
+  if (btn.classList.contains('loading') || btn.classList.contains('selected-up') || btn.classList.contains('selected-down')) return;
+
+  // Add a temporary loading state to the button
+  const originalContent = btn.innerHTML;
+  btn.classList.add('loading');
+  btn.innerHTML = `<span>⏳</span> Saving...`;
+
   try {
-    await fetch(`${API}/api/feedback`, {
+    const response = await fetch(`${API}/api/feedback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ skill_name: skillId, output_file: outputFile, rating, comment: '' })
+      body: JSON.stringify({ 
+        skill_name: skillId, 
+        output_file: outputFile, 
+        rating, 
+        comment: '' 
+      })
     });
+
+    if (!response.ok) throw new Error('API Error');
+
     const bar = document.getElementById(`feedback-${skillId}`);
     if (bar) {
-      bar.querySelectorAll('.feedback-btn').forEach(b => b.classList.remove('selected-up','selected-down'));
+
+      bar.querySelectorAll('.feedback-btn').forEach(b => {
+        b.classList.remove('selected-up', 'selected-down', 'loading');
+        b.innerHTML = b.classList.contains('up') ? '👍 Helpful' : '👎 Not helpful';
+      });
       btn.classList.add(rating === 1 ? 'selected-up' : 'selected-down');
+      const label = bar.querySelector('.feedback-label');
+      if (label) label.textContent = 'Thanks for the feedback!';
     }
+
     showToast(rating === 1 ? '👍 Feedback saved' : '👎 Feedback saved');
-  } catch(e) { showToast('Could not save feedback'); }
+  } catch(e) { 
+    console.error("Feedback submission failed:", e);
+    showToast('❌ Could not save feedback'); 
+
+    btn.classList.remove('loading');
+    btn.innerHTML = originalContent;
+  }
+}
+
+async function addOutcome() {
+  const company = document.getElementById('oc-company')?.value?.trim();
+  const role    = document.getElementById('oc-role')?.value?.trim();
+  const status  = document.getElementById('oc-status')?.value;
+  const notes   = document.getElementById('oc-notes')?.value?.trim();
+  if (!company || !role) { showToast('Company and role are required'); return; }
+  try {
+    await fetch(`${API}/api/outcomes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ company, role, status, notes })
+    });
+    showToast(`✓ Logged: ${company}`);
+    loadOutcomes();
+  } catch(e) { showToast('Could not save outcome'); }
+}
+
+async function loadOutcomes() {
+  const panel = document.getElementById('outcomesPanel');
+  try {
+    const res  = await fetch(`${API}/api/outcomes`);
+    const data = await res.json();
+    const stats = data.stats;
+    const outcomes = data.outcomes;
+
+    const statusColors = {
+      applied:     { bg:'#eff6ff', border:'#bfdbfe', text:'#1d4ed8' },
+      no_response: { bg:'var(--slate-100)', border:'var(--slate-200)', text:'var(--slate-500)' },
+      interview:   { bg:'#fef9c3', border:'#fde68a', text:'#92400e' },
+      offer:       { bg:'var(--green-light)', border:'var(--green-border)', text:'var(--green)' },
+      rejected:    { bg:'var(--red-light)', border:'var(--red-border)', text:'var(--red)' },
+    };
+
+    const statsHtml = stats.total ? `
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+        <div style="background:var(--blue-faint);border:1px solid #bae6fd;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;color:var(--blue-dark);">
+          ${stats.total} total applications
+        </div>
+        ${Object.entries(stats.by_status).map(([s,c]) => {
+          const col = statusColors[s] || statusColors.applied;
+          return `<div style="background:${col.bg};border:1px solid ${col.border};border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;color:${col.text};">
+            ${c} ${s.replace(/_/g,' ')}
+          </div>`;
+        }).join('')}
+      </div>` : '';
+
+    const formHtml = `
+      <div style="background:var(--white);border:1px solid var(--slate-200);border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+        <div style="font-size:12px;font-weight:700;color:var(--slate-500);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Log New Application</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <input id="oc-company" placeholder="Company (e.g. Arbisoft)"
+            style="padding:8px 12px;border:1px solid var(--slate-200);border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
+          <input id="oc-role" placeholder="Role (e.g. AI/ML Intern)"
+            style="padding:8px 12px;border:1px solid var(--slate-200);border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <select id="oc-status" style="padding:8px 12px;border:1px solid var(--slate-200);border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
+            <option value="applied">Applied</option>
+            <option value="no_response">No Response</option>
+            <option value="interview">Got Interview</option>
+            <option value="offer">Got Offer</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <input id="oc-notes" placeholder="Notes (optional)"
+            style="padding:8px 12px;border:1px solid var(--slate-200);border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
+        </div>
+        <button onclick="addOutcome()"
+          style="padding:8px 20px;background:var(--blue);color:white;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">
+          Log Application
+        </button>
+      </div>`;
+
+    const listHtml = outcomes.length ? outcomes.map(o => {
+      const col = statusColors[o.status] || statusColors.applied;
+      return `
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;
+                    background:var(--white);border:1px solid var(--slate-200);
+                    border-radius:10px;margin-bottom:6px;">
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:600;color:var(--slate-900);">${o.company} — ${o.role}</div>
+            <div style="font-size:11px;color:var(--slate-400);margin-top:2px;font-family:'JetBrains Mono',monospace;">
+              ${o.applied_date} · Score: ${o.score_at_time || 'N/A'}/10${o.notes ? ' · ' + o.notes : ''}
+            </div>
+          </div>
+          <span style="background:${col.bg};border:1px solid ${col.border};color:${col.text};
+                       padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">
+            ${o.status.replace(/_/g,' ')}
+          </span>
+        </div>`;
+    }).join('') : '<div style="color:var(--slate-300);font-size:12px;padding:20px 0;">No applications logged yet.</div>';
+
+    panel.innerHTML = statsHtml + formHtml + listHtml;
+  } catch(e) {
+    panel.innerHTML = '<div class="error-box" style="font-size:11px;">Could not load outcomes</div>';
+  }
 }
 
 async function addOutcome() {
