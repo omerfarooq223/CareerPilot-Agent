@@ -1,29 +1,110 @@
 model_provider: groq
 model_name: llama-3.3-70b-versatile
-
-target_role: "Agentic AI Developer Intern"
-target_timeline: "2-3 months"
+target_role: Agentic AI Developer Intern
+target_timeline: 2-3 months
 target_companies:
-  - Arbisoft
-  - Folio3
-  - 10Pearls
-  - Contour Software
-  - Systems Limited
-
-# self_declared_skills is intentionally minimal — only things not visible on GitHub
+- Arbisoft
+- Folio3
+- 10Pearls
+- Contour Software
+- Systems Limited
 additional_context:
-  - "Enrolled in Panaversity Agentic AI Program"
-  - "6th semester BS Artificial Intelligence at UMT Lahore"
-  - "Open to remote work"
-
+- Enrolled in Panaversity Agentic AI Program
+- 6th semester BS Artificial Intelligence at UMT Lahore
+- Open to remote work and internships in Lahore, Pakistan
 preferred_stack:
-  - FastAPI
-  - Groq API
-  - Python
-
+- FastAPI
+- Agentic AI
+- Python
+- Django
 credentials:
   cgpa: 3.81
   awards:
-    - "Dean's Award — top 10% SGPA"
-    - "Rector's Award — perfect 4.0 SGPA"
+  - Dean's Award — top 10% SGPA
+  - Rector's Award — perfect 4.0 SGPA
   portfolio: omerfarooq223.github.io
+shipped_projects:
+- name: CareerPilot-Agent
+  type: Agentic AI
+  url: github.com/omerfarooq223/CareerPilot-Agent
+  stack:
+  - agentic-ai
+  - fastapi
+  - github-actions
+  - groq
+  - llm
+  - mcp
+  - python
+  - sqlite
+- name: autoresearch-agent
+  type: Agentic AI
+  url: github.com/omerfarooq223/autoresearch-agent
+  stack:
+  - ai
+  - automation
+  - groq
+  - llm
+  - pdf
+  - python
+  - research
+  - tavily
+- name: personal-ai-employee
+  type: Automation
+  url: github.com/omerfarooq223/personal-ai-employee
+  stack:
+  - ai-agent
+  - automation
+  - claude-code
+  - gmail-api
+  - mcp
+  - obsidian
+  - panaversity
+  - python
+- name: omerfarooq223.github.io
+  type: Python Project
+  url: github.com/omerfarooq223/omerfarooq223.github.io
+  stack:
+  - css
+  - html
+  - js
+  - portfolio
+  - ui-design
+- name: AutoGrader-Agent
+  type: Agentic AI
+  url: github.com/omerfarooq223/AutoGrader-Agent
+  stack:
+  - ai
+  - automation
+  - education
+  - grading
+  - groq
+  - llama
+  - llm
+  - python
+- name: YOLO_Vehicle_Detection
+  type: Python Project
+  url: github.com/omerfarooq223/YOLO_Vehicle_Detection
+  stack:
+  - Jupyter Notebook
+- name: DSA_CPP
+  type: Python Project
+  url: github.com/omerfarooq223/DSA_CPP
+  stack:
+  - C++
+- name: n8n-jira-slack
+  type: Python Project
+  url: github.com/omerfarooq223/n8n-jira-slack
+  stack:
+  - Python
+- name: n8n-workflows
+  type: Python Project
+  url: github.com/omerfarooq223/n8n-workflows
+  stack:
+  - HTML
+- name: parking-detection-system
+  type: Python Project
+  url: github.com/omerfarooq223/parking-detection-system
+  stack:
+  - Python
+self_declared_skills:
+- FastAPI
