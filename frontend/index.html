@@ -1182,43 +1182,6 @@
     font-size: 11px; color: var(--slate-400); margin-top: 2px;
   }
 
-  /* ── Feedback buttons ── */
-  .feedback-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 0 0;
-    margin-top: 12px;
-    border-top: 1px solid var(--slate-100);
-  }
-  .feedback-label {
-    font-size: 11px;
-    color: var(--slate-400);
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
-  .feedback-btn {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 5px 12px;
-    border-radius: 20px;
-    border: 1px solid var(--slate-200);
-    background: var(--white);
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--slate-500);
-    font-family: "Plus Jakarta Sans", sans-serif;
-    transition: all 0.15s;
-  }
-  .feedback-btn:hover { border-color: var(--slate-300); background: var(--slate-50); }
-  .feedback-btn.up:hover   { border-color: var(--green-border); color: var(--green); background: var(--green-light); }
-  .feedback-btn.down:hover { border-color: var(--red-border);   color: var(--red);   background: var(--red-light); }
-  .feedback-btn.selected-up   { border-color: var(--green-border); color: var(--green); background: var(--green-light); }
-  .feedback-btn.selected-down { border-color: var(--red-border);   color: var(--red);   background: var(--red-light); }
-
   /* ── Memory section ── */
   .mem-section {
     margin-bottom: 24px;
@@ -1345,7 +1308,7 @@
     <div class="output-tabs">
       <button class="output-tab active" onclick="switchTab('current')" id="tab-current">Current Output</button>
       <button class="output-tab" onclick="switchTab('memory')" id="tab-memory">Memory</button>
-      <button class="output-tab" onclick="switchTab('log')" id="tab-log">Action Log</button>
+      <button class="output-tab" onclick="switchTab('progress')" id="tab-progress">Progress</button>
       <button class="output-tab" onclick="switchTab('outcomes')" id="tab-outcomes">Outcomes</button>
     </div>
 
@@ -1370,15 +1333,15 @@
       </div>
     </div>
 
-    <div class="output-body tab-panel" id="panel-outcomes" style="display:none;">
-      <div id="outcomesPanel">
-        <div style="color:var(--slate-300);font-size:12px;">Loading outcomes...</div>
+    <div class="output-body tab-panel" id="panel-progress" style="display:none;">
+      <div id="progressPanel">
+        <div style="color:var(--slate-300);font-size:12px;">Loading progress...</div>
       </div>
     </div>
 
-    <div class="output-body tab-panel" id="panel-log" style="display:none;">
-      <div id="actionLogList">
-        <div style="color:var(--slate-300);font-size:12px;">Loading action log...</div>
+    <div class="output-body tab-panel" id="panel-outcomes" style="display:none;">
+      <div id="outcomesPanel">
+        <div style="color:var(--slate-300);font-size:12px;">Loading outcomes...</div>
       </div>
     </div>
   </div>
@@ -1406,12 +1369,12 @@ async function init() {
 function switchTab(tab) {
   document.getElementById('outputBody').style.display      = tab === 'current'  ? 'block' : 'none';
   document.getElementById('panel-memory').style.display    = tab === 'memory'   ? 'block' : 'none';
-  document.getElementById('panel-log').style.display       = tab === 'log'      ? 'block' : 'none';
+  document.getElementById('panel-progress').style.display  = tab === 'progress' ? 'block' : 'none';
   document.getElementById('panel-outcomes').style.display  = tab === 'outcomes' ? 'block' : 'none';
   document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
   document.getElementById(`tab-${tab}`).classList.add('active');
   if (tab === 'memory')   loadMemory();
-  if (tab === 'log')      loadActionLog();
+  if (tab === 'progress') loadProgress();
   if (tab === 'outcomes') loadOutcomes();
 }
 
@@ -1630,32 +1593,199 @@ function copyFromEl(id) {
   if (text) navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'));
 }
 
-// ── Action log ────────────────────────────────────────────────────
-async function loadActionLog() {
+// ── Progress tab ─────────────────────────────────────────────────
+async function loadProgress() {
+  const panel = document.getElementById('progressPanel');
   try {
-    const res  = await fetch(`${API}/api/history/audits`);
+    const res  = await fetch(`${API}/api/dashboard`);
     const data = await res.json();
 
-    if (!data.history.length) {
-      document.getElementById('actionLogList').innerHTML =
-        '<div style="color:var(--slate-300);font-size:12px;padding:20px 0;">No actions recorded yet.</div>';
+    const history = data.score_history || [];
+    if (!history.length) {
+      panel.innerHTML = `
+        <div class="empty-state" style="padding:40px 0;">
+          <div class="empty-icon">📈</div>
+          <h2>No history yet</h2>
+          <p>Run the agent a few times to start building your progress chart.</p>
+        </div>`;
       return;
     }
 
-    document.getElementById('actionLogList').innerHTML = data.history.map(h => {
-      const time = h.timestamp.substring(0,16).replace('T',' ');
-      return `
-        <div class="action-log-item">
-          <div class="action-log-time">${time}</div>
-          <div>
-            <div class="action-log-name">${h.action.replace(/_/g,' ')}</div>
-            <div class="action-log-desc">${h.description}</div>
-          </div>
-        </div>`;
+    // Score trend
+    const first  = history[0]?.score || 0;
+    const latest = history[history.length-1]?.score || 0;
+    const delta  = latest - first;
+    const weeks  = Math.ceil((10 - latest) / Math.max(delta / Math.max(history.length-1,1), 0.1));
+    const estWeeks = delta > 0 ? Math.min(weeks, 20) : '?';
+
+    // Chart
+    const maxScore = 10;
+    const chartH   = 160;
+    const chartW   = 600;
+    const pts = history.slice(-40);
+    const coords = pts.map((h, i) => {
+      const x = (i / Math.max(pts.length-1, 1)) * chartW;
+      const y = chartH - (h.score / maxScore) * chartH;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+
+    const dots = pts.map((h, i) => {
+      const x = (i / Math.max(pts.length-1, 1)) * chartW;
+      const y = chartH - (h.score / maxScore) * chartH;
+      const date = h.timestamp?.substring(0,10) || '';
+      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4"
+        fill="var(--blue)" stroke="white" stroke-width="2">
+        <title>${h.score}/10 · ${date}</title>
+      </circle>`;
     }).join('');
+
+    // Grid lines
+    const gridLines = [2,4,6,8,10].map(v => {
+      const y = chartH - (v/maxScore)*chartH;
+      return `<line x1="0" y1="${y}" x2="${chartW}" y2="${y}"
+        stroke="var(--slate-200)" stroke-width="0.5"/>
+        <text x="-4" y="${y+3}" font-size="10" fill="var(--slate-400)"
+        text-anchor="end">${v}</text>`;
+    }).join('');
+
+    // Readiness metrics
+    const score      = data.score || latest;
+    const gaps       = data.critical_gaps || [];
+    const strengths  = data.strengths || [];
+    const linkedin   = data.linkedin_posts || [];
+    const lastPost   = linkedin.find(p => p.status === 'approved');
+    const daysSince  = lastPost
+      ? Math.floor((Date.now() - new Date(lastPost.timestamp)) / 86400000)
+      : null;
+
+    const scoreColor = score >= 8 ? 'var(--green)' : score >= 6 ? 'var(--blue)' : 'var(--red)';
+    const deltaColor = delta > 0 ? 'var(--green)' : delta < 0 ? 'var(--red)' : 'var(--slate-400)';
+    const deltaArrow = delta > 0 ? '↑' : delta < 0 ? '↓' : '→';
+
+    panel.innerHTML = `
+      <div style="max-width:800px;">
+
+        <!-- Score chart card -->
+        <div style="background:var(--white);border:1px solid var(--slate-200);border-radius:12px;
+                    padding:20px 24px;margin-bottom:16px;box-shadow:var(--shadow-sm);">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--slate-400);
+                      text-transform:uppercase;margin-bottom:16px;">Score History</div>
+          <svg viewBox="-20 -10 640 ${chartH+20}" style="width:100%;height:180px;">
+            ${gridLines}
+            <polyline points="${coords}" fill="none" stroke="var(--blue)"
+              stroke-width="2" stroke-linejoin="round"/>
+            <!-- Area fill -->
+            <polygon points="0,${chartH} ${coords} ${chartW},${chartH}"
+              fill="url(#grad)" opacity="0.15"/>
+            <defs>
+              <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="var(--blue)" stop-opacity="0.8"/>
+                <stop offset="100%" stop-color="var(--blue)" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            ${dots}
+          </svg>
+          <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;">
+            <div style="font-size:11px;color:var(--slate-400);">
+              ${history.length} sessions tracked
+            </div>
+            <div style="font-size:11px;font-weight:700;color:${deltaColor};">
+              ${deltaArrow} ${delta > 0 ? '+' : ''}${delta} overall
+            </div>
+            <div style="font-size:11px;color:var(--slate-400);">
+              Started at ${first}/10
+            </div>
+          </div>
+        </div>
+
+        <!-- Readiness dashboard -->
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--slate-400);
+                    text-transform:uppercase;margin-bottom:12px;">Internship Readiness</div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:16px;">
+
+          <!-- Current score -->
+          <div style="background:var(--white);border:1px solid var(--slate-200);border-radius:10px;
+                      padding:14px 16px;box-shadow:var(--shadow-sm);">
+            <div style="font-size:10px;color:var(--slate-400);font-weight:600;
+                        text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Score</div>
+            <div style="font-size:32px;font-weight:800;color:${scoreColor};
+                        line-height:1;letter-spacing:-1px;">${score}<span style="font-size:13px;
+                        color:var(--slate-300);font-weight:500;">/10</span></div>
+            <div style="width:100%;height:4px;background:var(--slate-100);border-radius:2px;margin-top:8px;">
+              <div style="width:${score*10}%;height:100%;background:${scoreColor};border-radius:2px;"></div>
+            </div>
+          </div>
+
+          <!-- Gaps remaining -->
+          <div style="background:var(--white);border:1px solid var(--slate-200);border-radius:10px;
+                      padding:14px 16px;box-shadow:var(--shadow-sm);">
+            <div style="font-size:10px;color:var(--slate-400);font-weight:600;
+                        text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Gaps Left</div>
+            <div style="font-size:32px;font-weight:800;color:${gaps.length > 0 ? 'var(--red)' : 'var(--green)'};
+                        line-height:1;">${gaps.length}</div>
+            <div style="font-size:11px;color:var(--slate-400);margin-top:4px;">critical gaps</div>
+          </div>
+
+          <!-- Est. weeks to 8/10 -->
+          <div style="background:var(--white);border:1px solid var(--slate-200);border-radius:10px;
+                      padding:14px 16px;box-shadow:var(--shadow-sm);">
+            <div style="font-size:10px;color:var(--slate-400);font-weight:600;
+                        text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Est. to 8/10</div>
+            <div style="font-size:32px;font-weight:800;color:var(--blue-dark);line-height:1;">
+              ${estWeeks}</div>
+            <div style="font-size:11px;color:var(--slate-400);margin-top:4px;">weeks</div>
+          </div>
+
+          <!-- LinkedIn -->
+          <div style="background:var(--white);border:1px solid var(--slate-200);border-radius:10px;
+                      padding:14px 16px;box-shadow:var(--shadow-sm);">
+            <div style="font-size:10px;color:var(--slate-400);font-weight:600;
+                        text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Last Post</div>
+            <div style="font-size:32px;font-weight:800;
+                        color:${daysSince === null ? 'var(--red)' : daysSince > 7 ? 'var(--red)' : 'var(--green)'};
+                        line-height:1;">
+              ${daysSince === null ? '—' : daysSince}</div>
+            <div style="font-size:11px;color:var(--slate-400);margin-top:4px;">days ago</div>
+          </div>
+
+        </div>
+
+        <!-- Gaps list -->
+        ${gaps.length ? `
+        <div style="background:var(--white);border:1px solid var(--slate-200);border-radius:10px;
+                    padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow-sm);">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--slate-400);
+                      text-transform:uppercase;margin-bottom:10px;">Critical Gaps to Close</div>
+          ${gaps.map((g,i) => `
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;
+                        border-bottom:${i < gaps.length-1 ? '1px solid var(--slate-100)' : 'none'}">
+              <div style="width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;"></div>
+              <span style="font-size:13px;color:var(--slate-700);">${g}</span>
+            </div>`).join('')}
+        </div>` : `
+        <div style="background:var(--green-light);border:1px solid var(--green-border);border-radius:10px;
+                    padding:14px 16px;margin-bottom:12px;">
+          <div style="font-size:13px;font-weight:600;color:var(--green);">✓ No critical gaps detected</div>
+        </div>`}
+
+        <!-- Strengths -->
+        ${strengths.length ? `
+        <div style="background:var(--white);border:1px solid var(--slate-200);border-radius:10px;
+                    padding:14px 16px;box-shadow:var(--shadow-sm);">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--slate-400);
+                      text-transform:uppercase;margin-bottom:10px;">Confirmed Strengths</div>
+          ${strengths.map((s,i) => `
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;
+                        border-bottom:${i < strengths.length-1 ? '1px solid var(--slate-100)' : 'none'}">
+              <div style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;"></div>
+              <span style="font-size:13px;color:var(--slate-700);">${s}</span>
+            </div>`).join('')}
+        </div>` : ''}
+
+      </div>`;
   } catch(e) {
-    document.getElementById('actionLogList').innerHTML =
-      '<div class="error-box" style="font-size:11px;">Could not load action log</div>';
+    panel.innerHTML = '<div class="error-box">Could not load progress data</div>';
   }
 }
 
@@ -1822,12 +1952,8 @@ function renderMarkdown(title, text, skillId = '', outputFile = '') {
   const feedbackBar = skillId ? `
     <div class="feedback-bar" id="feedback-${skillId}">
       <span class="feedback-label">Was this helpful?</span>
-      <button class="feedback-btn up" onclick="submitFeedback('${skillId}', '${outputFile}', 1, this)">
-        👍 Yes
-      </button>
-      <button class="feedback-btn down" onclick="submitFeedback('${skillId}', '${outputFile}', -1, this)">
-        👎 No
-      </button>
+      <button class="feedback-btn up" onclick="submitFeedback('${skillId}', '${outputFile}', 1, this)">👍 Yes</button>
+      <button class="feedback-btn down" onclick="submitFeedback('${skillId}', '${outputFile}', -1, this)">👎 No</button>
     </div>` : '';
   document.getElementById('outputBody').innerHTML =
     `<div class="output-content">${html}${feedbackBar}</div>`;
@@ -1890,90 +2016,20 @@ function renderAgentResult(data) {
   }, 200);
 }
 
-async function loadOutcomes() {
-  const panel = document.getElementById('outcomesPanel');
+async function submitFeedback(skillId, outputFile, rating, btn) {
   try {
-    const res  = await fetch(`${API}/api/outcomes`);
-    const data = await res.json();
-    const stats = data.stats;
-    const outcomes = data.outcomes;
-
-    const statusColors = {
-      applied:      { bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8' },
-      no_response:  { bg: 'var(--slate-100)', border: 'var(--slate-200)', text: 'var(--slate-500)' },
-      interview:    { bg: '#fef9c3', border: '#fde68a', text: '#92400e' },
-      offer:        { bg: 'var(--green-light)', border: 'var(--green-border)', text: 'var(--green)' },
-      rejected:     { bg: 'var(--red-light)', border: 'var(--red-border)', text: 'var(--red)' },
-    };
-
-    const statsHtml = stats.total ? `
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
-        <div style="background:var(--blue-faint);border:1px solid #bae6fd;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;color:var(--blue-dark);">
-          ${stats.total} total applications
-        </div>
-        ${Object.entries(stats.by_status).map(([s,c]) => {
-          const col = statusColors[s] || statusColors.applied;
-          return `<div style="background:${col.bg};border:1px solid ${col.border};border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;color:${col.text};">
-            ${c} ${s.replace(/_/g,' ')}
-          </div>`;
-        }).join('')}
-      </div>` : '';
-
-    const formHtml = `
-      <div style="background:var(--white);border:1px solid var(--slate-200);border-radius:12px;padding:16px 20px;margin-bottom:20px;">
-        <div style="font-size:12px;font-weight:700;color:var(--slate-500);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">
-          Log New Application
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-          <input id="oc-company" placeholder="Company (e.g. Arbisoft)"
-            style="padding:8px 12px;border:1px solid var(--slate-200);border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
-          <input id="oc-role" placeholder="Role (e.g. AI/ML Intern)"
-            style="padding:8px 12px;border:1px solid var(--slate-200);border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-          <select id="oc-status" style="padding:8px 12px;border:1px solid var(--slate-200);border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
-            <option value="applied">Applied</option>
-            <option value="no_response">No Response</option>
-            <option value="interview">Got Interview</option>
-            <option value="offer">Got Offer</option>
-            <option value="rejected">Rejected</option>
-          </select>
-          <input id="oc-notes" placeholder="Notes (optional)"
-            style="padding:8px 12px;border:1px solid var(--slate-200);border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
-        </div>
-        <button onclick="addOutcome()"
-          style="padding:8px 20px;background:var(--blue);color:white;border:none;border-radius:8px;
-                 font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">
-          Log Application
-        </button>
-      </div>`;
-
-    const listHtml = outcomes.length ? outcomes.map(o => {
-      const col = statusColors[o.status] || statusColors.applied;
-      return `
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;
-                    background:var(--white);border:1px solid var(--slate-200);
-                    border-radius:10px;margin-bottom:6px;">
-          <div style="flex:1;">
-            <div style="font-size:13px;font-weight:600;color:var(--slate-900);">
-              ${o.company} — ${o.role}
-            </div>
-            <div style="font-size:11px;color:var(--slate-400);margin-top:2px;font-family:'JetBrains Mono',monospace;">
-              ${o.applied_date} · Score at time: ${o.score_at_time || 'N/A'}/10
-              ${o.notes ? ' · ' + o.notes : ''}
-            </div>
-          </div>
-          <span style="background:${col.bg};border:1px solid ${col.border};color:${col.text};
-                       padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">
-            ${o.status.replace(/_/g,' ')}
-          </span>
-        </div>`;
-    }).join('') : '<div style="color:var(--slate-300);font-size:12px;padding:20px 0;">No applications logged yet.</div>';
-
-    panel.innerHTML = statsHtml + formHtml + listHtml;
-  } catch(e) {
-    panel.innerHTML = '<div class="error-box" style="font-size:11px;">Could not load outcomes</div>';
-  }
+    await fetch(`${API}/api/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ skill_name: skillId, output_file: outputFile, rating, comment: '' })
+    });
+    const bar = document.getElementById(`feedback-${skillId}`);
+    if (bar) {
+      bar.querySelectorAll('.feedback-btn').forEach(b => b.classList.remove('selected-up','selected-down'));
+      btn.classList.add(rating === 1 ? 'selected-up' : 'selected-down');
+    }
+    showToast(rating === 1 ? '👍 Feedback saved' : '👎 Feedback saved');
+  } catch(e) { showToast('Could not save feedback'); }
 }
 
 async function addOutcome() {
@@ -1991,22 +2047,6 @@ async function addOutcome() {
     showToast(`✓ Logged: ${company}`);
     loadOutcomes();
   } catch(e) { showToast('Could not save outcome'); }
-}
-
-async function submitFeedback(skillId, outputFile, rating, btn) {
-  try {
-    await fetch(`${API}/api/feedback`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ skill_name: skillId, output_file: outputFile, rating, comment: '' })
-    });
-    const bar = document.getElementById(`feedback-${skillId}`);
-    if (bar) {
-      bar.querySelectorAll('.feedback-btn').forEach(b => b.classList.remove('selected-up','selected-down'));
-      btn.classList.add(rating === 1 ? 'selected-up' : 'selected-down');
-    }
-    showToast(rating === 1 ? '👍 Feedback saved' : '👎 Feedback saved');
-  } catch(e) { showToast('Could not save feedback'); }
 }
 
 function showError(msg) {

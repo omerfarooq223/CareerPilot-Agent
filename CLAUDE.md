@@ -132,6 +132,7 @@ Key endpoints:
 - `GET  /api/history/outputs/{file}` — get content of a specific output file
 - `GET  /api/history/audits`         — action log from SQLite
 - `GET  /api/history/linkedin`       — all LinkedIn posts from SQLite
+- `GET /api/history/audits` — raw action log (developer use only, not exposed in UI)
 
 ---
 
