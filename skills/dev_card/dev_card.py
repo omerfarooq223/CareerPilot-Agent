@@ -20,7 +20,7 @@ def generate_dev_card(session: SessionMemory) -> str:
 You are writing a developer profile card in markdown for a student's portfolio.
 
 Developer info:
-- Name: {profile.name if profile else 'Unknown'}
+- Name: {goals.get("name", profile.name if profile else "Unknown")}
 - Bio: {profile.bio if profile else ''}
 - Total repos: {profile.public_repos if profile else 0}
 - Languages: {profile.languages_used if profile else {}}

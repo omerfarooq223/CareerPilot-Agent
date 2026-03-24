@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException
 from memory.short_term import SessionMemory
 from memory.long_term import init_db, save_snapshot, log_action
 from skills.github_observer.github_observer import fetch_github_profile
-from skills.gap_analyzer.gap_analyzer import analyze_gaps
+from skills.gap_analyzer.gap_analyzer import analyze_gaps, load_goals
 from planner.reasoner import make_plan
 from actions.executor import execute_plan
 from skills.registry import registry
@@ -21,6 +21,9 @@ def run_agent():
 
         # Observe
         session.profile = fetch_github_profile()
+        goals = load_goals()
+        if goals.get("name"):
+            session.profile.name = goals["name"]
 
         # Analyze
         session.gap_report = analyze_gaps(session.profile)

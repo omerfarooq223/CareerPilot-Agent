@@ -3,7 +3,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 
 from fastapi import APIRouter
 from pydantic import BaseModel
-from memory.long_term import init_db, get_last_snapshot, get_score_history, get_linkedin_post_history, DB_PATH, get_gap_trend, save_feedback, get_feedback_summary, log_outcome, get_outcomes, get_outcome_stats
+from config.config import Config
+from memory.long_term import init_db, get_last_snapshot, get_score_history, get_linkedin_post_history, get_gap_trend, save_feedback, get_feedback_summary, log_outcome, get_outcomes, get_outcome_stats
 
 router = APIRouter()
 
@@ -37,7 +38,7 @@ def get_dashboard():
 def get_audit_history():
     """Return all past audit and skill outputs from action log."""
     init_db()
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(Config.DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
         SELECT timestamp, action_type, description
@@ -85,7 +86,7 @@ def get_output_file(filename: str):
 @router.get("/history/linkedin")
 def get_linkedin_history():
     init_db()
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(Config.DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
         SELECT id, timestamp, post_type, repo_name, post_content, status
@@ -99,7 +100,7 @@ def get_linkedin_history():
 @router.get("/history/memory")
 def get_full_memory():
     init_db()
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(Config.DB_PATH)
     cursor = conn.cursor()
     output_dir = "output"
     categories = {"projects":[],"audits":[],"readmes":[],"dev_cards":[],"interview":[],"nudges":[],"other":[]}

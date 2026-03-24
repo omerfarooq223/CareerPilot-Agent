@@ -52,6 +52,8 @@ def analyze_gaps(profile: GitHubProfile) -> GapReport:
 
     logger.info("Sending profile + goals to Groq for gap analysis...")
 
+    user_name = goals.get("name", profile.name)
+
     # Build a clean summary of repos for the prompt
     repo_summary = []
     for r in profile.repos:
@@ -71,7 +73,7 @@ Analyze this student's GitHub profile against their target internship goals.
 Be honest, specific, and actionable. Do not sugarcoat.
 
 --- STUDENT PROFILE ---
-Name: {profile.name}
+Name: {user_name}
 Bio: {profile.bio}
 Total public repos: {profile.public_repos}
 Languages used: {profile.languages_used}

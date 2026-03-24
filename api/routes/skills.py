@@ -7,7 +7,7 @@ from typing import Optional
 from memory.short_term import SessionMemory
 from memory.long_term import init_db, save_snapshot
 from skills.github_observer.github_observer import fetch_github_profile
-from skills.gap_analyzer.gap_analyzer import analyze_gaps
+from skills.gap_analyzer.gap_analyzer import analyze_gaps, load_goals
 from actions.executor import execute_plan
 from skills.registry import registry
 
@@ -20,6 +20,11 @@ def build_session() -> SessionMemory:
     init_db()
     session = SessionMemory()
     session.profile    = fetch_github_profile()
+    
+    goals = load_goals()
+    if goals.get("name"):
+        session.profile.name = goals["name"]
+        
     session.gap_report = analyze_gaps(session.profile)
     save_snapshot(session.gap_report)
     return session

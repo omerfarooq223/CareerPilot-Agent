@@ -67,10 +67,12 @@ def run():
     console.print("Fetching your GitHub profile...")
     session = SessionMemory()
     session.profile = fetch_github_profile()
+    if goals.get("name"):
+        session.profile.name = goals["name"]
     # Auto-update goals before analysis
     from skills.goals_updater.goals_updater import update_goals
     update_goals(session)
-    console.print(f"[green]✓[/green] {session.profile.public_repos} repos loaded for [bold]{session.profile.username}[/bold]")
+    console.print(f"[green]✓[/green] {session.profile.public_repos} repos loaded for [bold]{session.profile.name}[/bold]")
 
     # ── ANALYZE ───────────────────────────────────────────────────────────────
     console.rule("[bold yellow]ANALYZE")

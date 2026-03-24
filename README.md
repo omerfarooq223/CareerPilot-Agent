@@ -22,8 +22,8 @@ python agent.py
 
 ## Quickstart
 ```bash
-git clone https://github.com/omerfarooq223/careerpilot
-cd careerpilot
+git clone https://github.com/omerfarooq223/CareerPilot-Agent
+cd CareerPilot-Agent
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 cp config/.env.example config/.env   # fill in your keys
