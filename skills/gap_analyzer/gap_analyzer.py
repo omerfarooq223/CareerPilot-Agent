@@ -1,15 +1,22 @@
-import os
 import json
 import yaml
 from groq import Groq
 from loguru import logger
-from dotenv import load_dotenv
 from pydantic import BaseModel
 from skills.github_observer.github_observer import GitHubProfile
+from config.config import Config
+from actions.circuit_breaker import CircuitBreaker
 
-from pathlib import Path
-load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / "config" / ".env", override=True)
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+# Initialize Circuit Breaker for LLM
+llm_cb = CircuitBreaker(
+    "llm_api", 
+    failure_threshold=Config.CB_FAILURE_THRESHOLD, 
+    recovery_timeout=Config.CB_RECOVERY_TIMEOUT
+)
+
+def _get_client():
+    """Get Groq client using config."""
+    return Groq(api_key=Config.GROQ_API_KEY)
 
 
 # ── Data model ─────────────────────────────────────────────────────────────────
@@ -104,12 +111,16 @@ Return ONLY a valid JSON object with exactly these keys:
 No markdown, no explanation, just the raw JSON.
 """
 
-    response = client.chat.completions.create(
-        model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.0,
-        max_tokens=1500
-    )
+    def _make_call():
+        client = _get_client()
+        return client.chat.completions.create(
+            model=Config.GROQ_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0,
+            max_tokens=1500
+        )
+
+    response = llm_cb.call(_make_call)
 
     raw = response.choices[0].message.content.strip()
 

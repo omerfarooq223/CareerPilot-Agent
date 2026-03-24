@@ -1,29 +1,26 @@
-import os
 import requests
-from loguru import logger
-from pydantic import BaseModel
-from typing import Optional
-from pathlib import Path
-from dotenv import load_dotenv
 import json
 from datetime import datetime, timedelta
+from typing import Optional
+from loguru import logger
+from pydantic import BaseModel
+from config.config import Config
+from actions.circuit_breaker import circuit_breaker
 
-CACHE_PATH = Path(__file__).resolve().parent.parent.parent / "memory" / "github_cache.json"
-CACHE_TTL_HOURS = 1
-load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / "config" / ".env", override=True)
-
-BASE_URL = "https://api.github.com"
+CACHE_PATH = Config.GITHUB_CACHE_PATH
+CACHE_TTL_HOURS = Config.GITHUB_CACHE_TTL_HOURS
+BASE_URL = Config.GITHUB_BASE_URL
 
 def _get_headers():
-    """Get headers dynamically so Railway env vars are always picked up."""
-    token = os.getenv("GITHUB_TOKEN")
+    """Get headers dynamically from Config."""
+    token = Config.GITHUB_TOKEN
     return {
         "Authorization": f"token {token}",
         "Accept": "application/vnd.github.v3+json"
     }
 
 def _get_username():
-    return os.getenv("GITHUB_USERNAME", "")
+    return Config.GITHUB_USERNAME
 
 
 # ── Data models ────────────────────────────────────────────────────────────────
@@ -54,6 +51,7 @@ class GitHubProfile(BaseModel):
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
+@circuit_breaker("github_commits", failure_threshold=Config.CB_FAILURE_THRESHOLD, recovery_timeout=Config.CB_RECOVERY_TIMEOUT)
 def get_commit_count(repo_name: str) -> int:
     """Get total commit count for a repo (sampled via pagination header)."""
     url = f"{BASE_URL}/repos/{_get_username()}/{repo_name}/commits?per_page=1"
@@ -72,6 +70,7 @@ def get_commit_count(repo_name: str) -> int:
     return len(response.json())  # fallback: less than 30 commits
 
 
+@circuit_breaker("github_readme", failure_threshold=Config.CB_FAILURE_THRESHOLD, recovery_timeout=Config.CB_RECOVERY_TIMEOUT)
 def has_readme(repo_name: str) -> bool:
     """Check if a repo has a README file."""
     url = f"{BASE_URL}/repos/{_get_username()}/{repo_name}/readme"
@@ -112,6 +111,7 @@ def _save_cache(profile: GitHubProfile) -> None:
 
 # ── Main observer ──────────────────────────────────────────────────────────────
 
+@circuit_breaker("github_profile", failure_threshold=Config.CB_FAILURE_THRESHOLD, recovery_timeout=Config.CB_RECOVERY_TIMEOUT)
 def fetch_github_profile(force_refresh: bool = False) -> GitHubProfile:
     """
     Fetch full GitHub profile and all repo snapshots.

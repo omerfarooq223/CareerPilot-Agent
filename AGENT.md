@@ -125,6 +125,7 @@ registry.disable("skill_name")
 
 ### Long-term (`memory/long_term.py`)
 - Persists in `memory/careerpilot.db` (SQLite)
+- **Engine**: Uses connection pooling via `database/db_utils.py` (default: 5 connections)
 - Tables:
   - `weekly_snapshots` — hirability score history week over week
   - `actions_log` — every action the agent has ever taken
@@ -164,6 +165,7 @@ criteria so the LLM scores against objective standards, not subjective judgment.
 
 ## Error handling layer (`actions/error_handler.py`)
 
+- `CircuitBreaker` — handles external API failures (GitHub/Groq)
 - `@retry` — retries failed functions with exponential backoff
 - `@timeout` — cancels functions that exceed time limit
 - `@fallback` — returns safe message instead of crashing agent

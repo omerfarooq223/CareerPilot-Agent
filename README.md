@@ -45,12 +45,8 @@ uvicorn api.server:app --reload --port 8000
 
 ## Configuration
 
-### `config/.env`
-```
-GITHUB_TOKEN=ghp_...
-GITHUB_USERNAME=your_github_username
-GROQ_API_KEY=gsk_...
-```
+### `config/config.py`
+Centralized configuration loader. Uses `config/.env` for secrets and defines app-wide constants.
 
 ### `config/goals.yaml`
 ```yaml
@@ -96,7 +92,10 @@ careerpilot/
 ├── requirements.txt                # Pinned dependencies
 ├── config/
 │   ├── .env                        # Secrets — NEVER commit this
+│   ├── config.py                   # Centralized configuration management
 │   └── goals.yaml                  # User's target role, skills, companies
+├── database/
+│   └── db_utils.py                 # SQLite connection pooling
 ├── skills/
 │   ├── registry.py                 # Plug-and-play skill registration system
 │   ├── github_observer/
@@ -135,6 +134,7 @@ careerpilot/
 │   └── reasoner.py                 # Groq-powered autonomous planner
 ├── actions/
 │   ├── executor.py                 # Skill dispatcher + shared utilities
+│   ├── circuit_breaker.py          # Circuit breaker for external APIs
 │   ├── error_handler.py            # Retry, timeout, fallback, rate limiting
 │   └── security.py                 # Input sanitization, path guards, secret scrubbing
 ├── scripts/
@@ -170,12 +170,13 @@ careerpilot/
 | **Web framework** | FastAPI |
 | **Frontend** | Vanilla HTML/CSS/JS + marked.js |
 | **CLI** | Rich + Loguru |
-| **Error handling** | Custom retry/timeout/fallback decorators |
+| **Error handling** | Circuit breaker + custom retry/timeout/fallback |
 | **Security** | Prompt injection guard, path traversal protection |
 | **Testing** | pytest |
 | **Scheduling** | GitHub Actions (weekly reminder) |
 | **Deployment** | Railway (free tier) |
 | **Caching** | Local JSON (1hr GitHub cache) |
+| **Connection Pooling**| SQLite pooling (5 connections) |
 
 ---
 
