@@ -111,7 +111,7 @@ careerpilot/
 | `generate_dev_card` | Markdown developer profile card (use sparingly) | `output/developer_card.md` |
 | `mock_interview_prep` | Role-specific interview questions | `output/mock_interview_prep.md` |
 | `weekly_nudge` | Honest weekly progress report | `output/weekly_nudge.md` |
-| `linkedin_writer` | HITL LinkedIn post generator with post memory | `output/linkedin_<type>_<repo>.md` |
+| `linkedin_writer` | LinkedIn post generator with Web UI HITL approval flow | `output/linkedin_<type>_<repo>.md` |
 
 ---
 
@@ -131,7 +131,8 @@ Key endpoints:
 - `GET  /api/history/memory`         — categorized memory (audits, projects, LinkedIn)
 - `GET  /api/history/outputs/{file}` — get content of a specific output file
 - `GET  /api/history/audits`         — action log from SQLite
-- `GET  /api/history/linkedin`       — all LinkedIn posts from SQLite
+- `GET /api/history/linkedin` — all LinkedIn posts from SQLite
+- `POST /api/linkedin/{post_id}/action` — approve, reject, or regenerate a post via the UI
 - `GET /api/history/audits` — raw action log (developer use only, not exposed in UI)
 
 ---

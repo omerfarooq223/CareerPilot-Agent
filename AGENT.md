@@ -112,7 +112,7 @@ registry.disable("skill_name")
 | `generate_dev_card` | `skills/dev_card/` | Generates a markdown developer profile card |
 | `mock_interview_prep` | `skills/interview_prep/` | Generates role-specific interview questions |
 | `weekly_nudge` | `skills/nudge_writer/` | Writes an honest weekly progress report |
-| `linkedin_writer` | `skills/linkedin_writer/` | HITL LinkedIn post generator with post memory |
+| `linkedin_writer` | `skills/linkedin_writer/` | LinkedIn post generator with Web UI HITL approval flow |
 
 ---
 

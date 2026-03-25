@@ -58,8 +58,6 @@ def detect_post_opportunity(session: SessionMemory) -> tuple[str, str | None]:
                 unposted_repos.append(repo)
 
     if unposted_repos:
-        # Pick the most impressive unposted repo
-        # Prioritize: has topics > has stars > most commits
         scored = sorted(
             unposted_repos,
             key=lambda r: (len(r.topics) > 0, r.stars, r.commit_count),
@@ -69,9 +67,26 @@ def detect_post_opportunity(session: SessionMemory) -> tuple[str, str | None]:
         logger.info(f"Found unposted repo to feature: {best_repo.name}")
         return "new_repo", best_repo.name
 
-    # All repos posted — do a progress/milestone post
     logger.info("All repos posted — generating progress post")
     return "progress", None
+
+
+# ── Repo narrative builder ─────────────────────────────────────────────────────
+
+def build_repo_narrative(repos: list) -> str:
+    """
+    Convert raw repo objects into a human-readable narrative block.
+    This prevents the LLM from having to interpret raw JSON metadata.
+    """
+    lines = []
+    for r in repos:
+        block = f"""Project: {r.get('name', 'Unknown')}
+What it does: {r.get('description') or 'No description provided'}
+Stack: {r.get('language', 'Unknown')} | Topics: {', '.join(r.get('topics', [])) or 'none tagged'}
+Stars: {r.get('stars', 0)} | Commits: {r.get('commit_count', 0)}
+URL: {r.get('url', '')}"""
+        lines.append(block)
+    return "\n\n".join(lines)
 
 
 # ── Post generator ─────────────────────────────────────────────────────────────
@@ -86,13 +101,13 @@ def generate_linkedin_post(
     with open("config/goals.yaml") as f:
         goals = yaml.safe_load(f)
 
-    # Build repo context
-    repo_context = []
+    # Build repo context as raw dicts first
+    repo_dicts = []
     if session.profile:
         for r in session.profile.repos:
             if repo_name and r.name != repo_name:
                 continue
-            repo_context.append({
+            repo_dicts.append({
                 "name": r.name,
                 "description": r.description,
                 "language": r.language,
@@ -103,7 +118,10 @@ def generate_linkedin_post(
             })
 
     if not repo_name:
-        repo_context = repo_context[:5]
+        repo_dicts = repo_dicts[:5]
+
+    # Convert to human-readable narrative — LLM handles voice, not data parsing
+    repo_narrative = build_repo_narrative(repo_dicts)
 
     # Build history context so agent avoids repeating angles
     history = get_linkedin_post_history()
@@ -114,46 +132,78 @@ def generate_linkedin_post(
         )
 
     score = session.gap_report.overall_score if session.gap_report else None
+    name = session.profile.name if session.profile else "Developer"
+    bio = session.profile.bio if session.profile else ""
+    github_url = goals.get("github", "")
 
     prompt = f"""
-You are a LinkedIn content writer for a student developer.
-Write a LinkedIn post that feels HUMAN — not corporate, not cringe, not generic AI-written.
+You are ghostwriting a LinkedIn post for {name}, a AI student who builds real projects and is actively looking for internships. 
 
---- DEVELOPER INFO ---
-Name: {session.profile.name if session.profile else 'Developer'}
-Bio: {session.profile.bio if session.profile else ''}
+--- VOICE ---
+Write like someone who genuinely loves building things and is proud but not arrogant.
+Use short punchy sentences. Occasional fragments are fine.
+The reader should feel like they're hearing from a real person at 1am who just got something working.
+
+--- ABOUT THE BUILDER ---
+Bio: {bio}
 Target role: {goals.get('target_role')}
-Skills: {goals.get('self_declared_skills')}
+Core skills: {goals.get('self_declared_skills')}
 CGPA: {goals.get('credentials', {}).get('cgpa', '')}
 Awards: {goals.get('credentials', {}).get('awards', [])}
 Portfolio: {goals.get('portfolio', '')}
-GitHub: {goals.get('github', '')}
+GitHub: {github_url}
 Hirability score: {score}/10
 
---- REPOS TO FEATURE ---
-{json.dumps(repo_context, indent=2)}
+--- PROJECT TO WRITE ABOUT ---
+{repo_narrative}
 
 --- POST TYPE ---
 {POST_TYPES.get(post_type, post_type)}
 
---- PREVIOUS POSTS (do NOT repeat these angles or repos) ---
-{chr(10).join(history_summary) if history_summary else 'No previous posts'}
+--- DO NOT REPEAT THESE (already posted) ---
+{chr(10).join(history_summary) if history_summary else 'No previous posts — this is the first one'}
 
---- WRITING RULES ---
-1. Start with a bold hook — one punchy line that stops scrolling
-2. Tell a real story — what did you build? what was the hardest part?
-3. Show your thinking — what did you learn?
-4. Mention specific tech naturally in the post
-5. Include your GitHub link
-6. End with 4-5 hashtags: always include #OpenToWork #Python #Pakistan #AgenticAI
-7. AIM FOR 900-1200 characters — do not write short posts
-8. Use line breaks every 2-3 lines for readability
-9. Sound like a smart ambitious student — not a corporate robot
-10. NEVER use "I am pleased to announce" or "I am excited to share"
-11. NEVER write less than 800 characters
+--- POST STRUCTURE ---
 
-Write ONE complete LinkedIn post of 900-1200 characters. Nothing else.
-    """
+Line 1 (HOOK): One sentence. What does it do and why does it matter to you personally?
+
+Lines 2–6 (WHAT YOU BUILT): 
+- What problem does it solve?
+- What's the most interesting technical decision you made?
+- Name specific components — don't just say "backend", say FastAPI + SQLite + Groq
+- What does the output actually look like? (e.g. "spits out a hirability score out of 10")
+
+Lines 7–9 (WHY IT'S DIFFERENT):
+What makes this project non-trivial? What would a recruiter find impressive?
+One concrete capability, not a vague claim.
+
+Line 10: GitHub link as a natural sentence
+Line 11: 6–7 hashtags
+
+--- EXAMPLE OF THE RIGHT VOICE ---
+"Built a rate limiter for my API last week. Thought it'd take 2 hours. Took 11.
+The issue wasn't the algorithm — Redis expiry keys behave differently under
+concurrent load than in tests. Spent 8 hours convinced my logic was wrong. It wasn't.
+Code's on my GitHub if you want to see the mess."
+
+Match this energy — specific tech, no corporate language, proud but not hype.
+
+--- HARD RULES ---
+- 900–1200 characters total. Count carefully.
+- Never use: "excited to share", "pleased to announce", "game-changer", "this has the potential to", "I think this can really"
+- Every sentence must be specific to THIS project — if it could appear in any developer's post, cut it
+- Line breaks every 2–3 lines for LinkedIn readability
+- No bullet points
+- ALWAYS include these fixed hashtags: #OpenToWork #Pakistan #BuildInPublic #AIAgents
+- Then generate 3–4 additional hashtags that are:
+  - Specific to THIS project (not generic like #Python or #AI)
+  - Niche enough to stand out but real enough that people follow them
+  - Examples of the right kind: #LLMEngineering, #Groq, #StudentDeveloper, #FastAPI
+  - Never use: #Coding, #Tech, #Developer, #Programming, #MachineLearning
+- Total hashtags: 7–8
+
+Write ONE complete LinkedIn post. Nothing else.
+"""
 
     post = call_groq(prompt, max_tokens=800)
     filename = f"linkedin_{post_type}_{repo_name or 'general'}.md"
@@ -168,34 +218,28 @@ def linkedin_writer(session: SessionMemory) -> str:
 
     console.rule("[bold blue]LinkedIn Post Generator")
 
-    # Detect what to post about
     post_type, repo_name = detect_post_opportunity(session)
 
-    # Too soon to post
     if post_type == "too_soon":
         last = get_last_post_date()
         days = (datetime.now() - datetime.fromisoformat(last)).days
         msg = f"Posted {days} days ago — waiting until 5 days have passed before next post."
         console.print(f"[yellow]{msg}[/yellow]")
         session.remember_action("linkedin_writer")
-        return msg
+        return json.dumps({"status": "error", "message": msg})
 
-    # Show what we're posting about
     if repo_name:
         console.print(f"[yellow]Generating post about: [bold]{repo_name}[/bold][/yellow]")
     else:
         console.print(f"[yellow]Generating post type: [bold]{post_type}[/bold][/yellow]")
 
-    # Show full history
     history = get_linkedin_post_history()
     if history:
         console.print(f"\n[dim]Previously posted about: {', '.join(get_posted_repos()) or 'nothing yet'}[/dim]")
 
-    # Generate post
     console.print("\n[dim]Writing your LinkedIn post...[/dim]\n")
     post = generate_linkedin_post(session, post_type, repo_name)
 
-    # Display post
     console.print(Panel(
         post,
         title="[bold green]📝 Your LinkedIn Post",
@@ -204,58 +248,17 @@ def linkedin_writer(session: SessionMemory) -> str:
     ))
     console.print(f"[dim]Character count: {len(post)}/1300[/dim]\n")
 
-    # HITL approval loop
-    while True:
-        console.print("[bold]What would you like to do?[/bold]")
-        console.print("  [green]Y[/green] — Approve, copy to clipboard + open LinkedIn")
-        console.print("  [yellow]R[/yellow] — Regenerate a different version")
-        console.print("  [red]N[/red] — Discard this post")
-
-        choice = input("\nYour choice (Y/R/N): ").strip().upper()
-        if not choice:
-            console.print("[red]Please type Y, R, or N and press Enter[/red]")
-            continue
-
-        if choice == "Y":
-            _copy_and_open(post)
-            save_linkedin_post(post_type, repo_name, post, "approved")
-            log_action("linkedin_posted", f"Approved — {post_type} about {repo_name}")
-            session.remember_action("linkedin_writer")
-            return "✅ Post copied to clipboard. LinkedIn opened — paste and post!"
-
-        elif choice == "R":
-            save_linkedin_post(post_type, repo_name, post, "regenerated")
-            console.print("\n[yellow]Regenerating a fresh version...[/yellow]\n")
-            post = generate_linkedin_post(session, post_type, repo_name)
-            console.print(Panel(
-                post,
-                title="[bold green]📝 Regenerated Post",
-                border_style="green",
-                padding=(1, 2)
-            ))
-            console.print(f"[dim]Character count: {len(post)}/1300[/dim]\n")
-
-        elif choice == "N":
-            save_linkedin_post(post_type, repo_name, post, "discarded")
-            log_action("linkedin_post_discarded", f"{post_type} about {repo_name}")
-            session.remember_action("linkedin_writer")
-            return "Post discarded."
-
-        else:
-            console.print("[red]Please enter Y, R, or N[/red]")
-
-
-# ── Helpers ────────────────────────────────────────────────────────────────────
-
-def _copy_and_open(post: str):
-    try:
-        import pyperclip
-        pyperclip.copy(post)
-        console.print("\n[green]✓ Copied to clipboard[/green]")
-    except Exception:
-        console.print("\n[yellow]Could not copy — copy the post manually[/yellow]")
-    webbrowser.open("https://www.linkedin.com/feed/")
-    console.print("[green]✓ LinkedIn opened in browser[/green]")
+    # Save as pending and return structured json to UI
+    post_id = save_linkedin_post(post_type, repo_name, post, "pending")
+    session.remember_action("linkedin_writer")
+    
+    return json.dumps({
+        "status": "pending",
+        "post_id": post_id,
+        "post": post,
+        "post_type": post_type,
+        "repo_name": repo_name
+    })
 
 
 # ── Quick test ─────────────────────────────────────────────────────────────────

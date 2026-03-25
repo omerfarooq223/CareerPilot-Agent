@@ -2,8 +2,8 @@
 
 ## What it does
 Generates a human-sounding LinkedIn post based on the developer's GitHub
-repos and profile, then runs a HITL approval flow — copy to clipboard
-and opens LinkedIn on approval.
+repos and profile. Returns a structured JSON payload to the Web UI to trigger 
+a Human-in-the-Loop (HITL) approval flow.
 
 ## Inputs
 - `session.profile` — GitHub profile and repo data
@@ -12,9 +12,9 @@ and opens LinkedIn on approval.
 - SQLite action log — detects if first ever post
 
 ## Outputs
-- `output/linkedin_<type>_<repo>.md` — saved post
-- Clipboard — post copied on approval
-- Browser — LinkedIn opened on approval
+- `output/linkedin_<type>_<repo>.md` — saved post text
+- JSON string — `{status, post_id, post, post_type, repo_name}` sent upwards
+- SQLite — saved as `pending` in `linkedin_posts` table
 
 ## Post types
 - `intro` — first post introducing yourself
@@ -30,10 +30,9 @@ and opens LinkedIn on approval.
 
 ## Dependencies
 - Groq API
-- `pyperclip` — clipboard access
-- `webbrowser` — opens LinkedIn
-- `memory/long_term.py` — checks post history
+- `memory/long_term.py` — saves pending posts to SQLite
 - `config/goals.yaml`
+- CareerPilot Web UI (handles HITL approval flow)
 
 ## Version
-1.0.0
+1.1.0

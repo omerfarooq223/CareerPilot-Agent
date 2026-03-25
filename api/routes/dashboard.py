@@ -4,7 +4,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 from fastapi import APIRouter
 from pydantic import BaseModel
 from config.config import Config
-from memory.long_term import init_db, get_last_snapshot, get_score_history, get_linkedin_post_history, get_gap_trend, save_feedback, get_feedback_summary, log_outcome, get_outcomes, get_outcome_stats
+from memory.long_term import (
+    init_db, get_last_snapshot, get_score_history, get_linkedin_post_history, 
+    get_gap_trend, save_feedback, get_feedback_summary, log_outcome, get_outcomes, 
+    get_outcome_stats, get_linkedin_post_by_id, update_linkedin_post_status, 
+    update_linkedin_post_content, log_action
+)
 
 router = APIRouter()
 
@@ -96,6 +101,43 @@ def get_linkedin_history():
     conn.close()
     return {"posts": [{"id":r[0],"timestamp":r[1],"post_type":r[2],
             "repo_name":r[3],"post_content":r[4],"status":r[5]} for r in rows]}
+
+class LinkedInActionRequest(BaseModel):
+    action: str
+
+@router.post("/linkedin/{post_id}/action")
+def handle_linkedin_action(post_id: int, body: LinkedInActionRequest):
+    init_db()
+    post = get_linkedin_post_by_id(post_id)
+    if not post:
+        return {"error": "Post not found"}
+
+    if body.action == "approve":
+        update_linkedin_post_status(post_id, "approved")
+        log_action("linkedin_posted", f"Approved — {post['post_type']} about {post['repo_name']}")
+        return {"status": "ok"}
+        
+    elif body.action == "reject":
+        update_linkedin_post_status(post_id, "discarded")
+        log_action("linkedin_post_discarded", f"{post['post_type']} about {post['repo_name']}")
+        return {"status": "ok"}
+        
+    elif body.action == "regenerate":
+        from skills.linkedin_writer.linkedin_writer import generate_linkedin_post
+        from memory.short_term import SessionMemory
+        from skills.github_observer.github_observer import fetch_github_profile
+        from skills.gap_analyzer.gap_analyzer import analyze_gaps
+        
+        session = SessionMemory()
+        session.profile = fetch_github_profile()
+        session.gap_report = analyze_gaps(session.profile)
+        
+        new_content = generate_linkedin_post(session, post["post_type"], post["repo_name"])
+        update_linkedin_post_content(post_id, new_content)
+        
+        return {"status": "ok", "post_content": new_content}
+        
+    return {"error": "Invalid action"}
 
 @router.get("/history/memory")
 def get_full_memory():

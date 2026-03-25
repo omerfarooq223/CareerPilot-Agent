@@ -1,6 +1,10 @@
-import json
+import sys, os, json
 from datetime import datetime
 from pathlib import Path
+
+# Add project root to sys.path for import resolution
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from loguru import logger
 from skills.github_observer.github_observer import GitHubProfile
 from skills.gap_analyzer.gap_analyzer import GapReport
@@ -94,8 +98,8 @@ def get_score_history() -> list[dict]:
 
         return [{"timestamp": r[0], "score": r[1]} for r in rows]
 
-def save_linkedin_post(post_type: str, repo_name: str, content: str, status: str):
-    """Save a LinkedIn post to memory."""
+def save_linkedin_post(post_type: str, repo_name: str, content: str, status: str) -> int:
+    """Save a LinkedIn post to memory and return its ID."""
     pool = get_db_pool()
 
     with pool.get_conn() as conn:
@@ -105,7 +109,50 @@ def save_linkedin_post(post_type: str, repo_name: str, content: str, status: str
             VALUES (?, ?, ?, ?, ?)
         """, (datetime.now().isoformat(), post_type, repo_name, content, status))
         conn.commit()
+        last_id = cursor.lastrowid
     logger.info(f"LinkedIn post saved — type: {post_type}, repo: {repo_name}, status: {status}")
+    return last_id
+
+def update_linkedin_post_status(post_id: int, status: str) -> None:
+    """Update status of a LinkedIn post."""
+    pool = get_db_pool()
+    with pool.get_conn() as conn:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE linkedin_posts SET status = ? WHERE id = ?", (status, post_id))
+        conn.commit()
+    logger.info(f"LinkedIn post {post_id} status updated to: {status}")
+
+def update_linkedin_post_content(post_id: int, content: str) -> None:
+    """Update content of a LinkedIn post."""
+    pool = get_db_pool()
+    with pool.get_conn() as conn:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE linkedin_posts SET post_content = ? WHERE id = ?", (content, post_id))
+        conn.commit()
+    logger.info(f"LinkedIn post {post_id} content updated")
+
+def get_linkedin_post_by_id(post_id: int) -> dict | None:
+    """Return a specific LinkedIn post by ID."""
+    pool = get_db_pool()
+    with pool.get_conn() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, timestamp, post_type, repo_name, post_content, status
+            FROM linkedin_posts WHERE id = ?
+        """, (post_id,))
+        row = cursor.fetchone()
+        
+        if row:
+            return {
+                "id": row[0],
+                "timestamp": row[1],
+                "post_type": row[2],
+                "repo_name": row[3],
+                "post_content": row[4],
+                "status": row[5]
+            }
+        return None
+
 
 
 def get_posted_repos() -> list[str]:
@@ -333,7 +380,7 @@ def export_latest_snapshot():
         "strengths":       snapshot["strengths"] if snapshot else [],
         "verdict":         snapshot["verdict"] if snapshot else "",
         "last_updated":    snapshot["timestamp"][:10] if snapshot else None,
-        "score_history":   history[-5:] if history else [],
+        "score_history":   history[-5:] if (history and len(history) >= 5) else (history or []),
         "score_delta":     trend.get("score_delta", 0) if trend.get("status") == "ok" else 0,
         "closed_gaps":     trend.get("closed_gaps", []) if trend.get("status") == "ok" else [],
         "days_since_post": None,
@@ -380,7 +427,7 @@ def seed_from_snapshot():
                 data["score"],
                 json.dumps(data.get("strengths", [])),
                 json.dumps(data.get("critical_gaps", [])),
-                json.dumps(data.get("score_history", [{}])[-1:]),
+                json.dumps(data.get("score_history", [{}])[-1:] if data.get("score_history") else [{}]),
                 json.dumps([]),
                 "Seeded from latest_snapshot.json"
             ))
@@ -392,8 +439,6 @@ def seed_from_snapshot():
 # ── Quick test ─────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    import sys, os
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
     from rich.pretty import pprint
 
     init_db()
