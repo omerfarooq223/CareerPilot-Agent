@@ -229,4 +229,4 @@ To test manually: GitHub → Actions → Weekly CareerPilot Reminder → Run wor
 
 ## License
 
-MIT
+[MIT](LICENSE)
