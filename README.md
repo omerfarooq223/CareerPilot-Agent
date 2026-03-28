@@ -81,83 +81,91 @@ preferred_stack:
 
 ## Project structure
 ```
-careerpilot/
-├── agent.py                        # CoreAgent — boots the full CLI loop
-├── CLAUDE.md                       # This file — AI assistant briefing
-├── AGENT.md                        # Agent architecture documentation
-├── README.md                       # Public-facing project documentation
-├── pyproject.toml                  # Packaging and dependency config
-├── Procfile                        # Railway start command
-├── railway.json                    # Railway deployment config
-├── requirements.txt                # Pinned dependencies
-├── config/
-│   ├── .env                        # Secrets — NEVER commit this
-│   ├── config.py                   # Centralized configuration management
-│   └── goals.yaml                  # User's target role, skills, companies
-├── database/
-│   └── db_utils.py                 # SQLite connection pooling
-├── skills/
-│   ├── registry.py                 # Plug-and-play skill registration system
-│   ├── github_observer/
-│   │   ├── github_observer.py      # Fetches GitHub profile via REST API
-│   │   └── SKILL.md
-│   ├── gap_analyzer/
-│   │   ├── gap_analyzer.py         # Groq-powered gap analysis
-│   │   └── SKILL.md
-│   ├── audit_repo/
-│   │   ├── audit_repo.py           # Smart audit — MCP deep if available, metadata fallback
-│   │   └── SKILL.md
-│   ├── project_suggester/
-│   │   ├── project_suggester.py    # Suggests mini-projects for skill gaps
-│   │   └── SKILL.md
-│   ├── readme_writer/
-│   │   ├── readme_writer.py        # Rewrites READMEs professionally
-│   │   └── SKILL.md
-│   ├── dev_card/
-│   │   ├── dev_card.py             # Generates developer profile card
-│   │   └── SKILL.md
-│   ├── interview_prep/
-│   │   ├── interview_prep.py       # Mock interview questions
-│   │   └── SKILL.md
-│   ├── nudge_writer/
-│   │   ├── nudge_writer.py         # Weekly honest progress nudge
-│   │   └── SKILL.md
-│   └── linkedin_writer/
-│       ├── linkedin_writer.py      # HITL LinkedIn post generator with memory
-│       └── SKILL.md
-├── memory/
-│   ├── short_term.py               # SessionMemory — current run state
-│   └── long_term.py                # SQLite — snapshots, action log, LinkedIn history
-│   └── latest_snapshot.json        # Auto-generated — read by GitHub Actions
-│   └── github_cache.json        # gitignored — auto-generated, 1hr TTL
-├── planner/
-│   └── reasoner.py                 # Groq-powered autonomous planner
-├── actions/
-│   ├── executor.py                 # Skill dispatcher + shared utilities
-│   ├── circuit_breaker.py          # Circuit breaker for external APIs
-│   ├── error_handler.py            # Retry, timeout, fallback, rate limiting
-│   └── security.py                 # Input sanitization, path guards, secret scrubbing
-├── scripts/
-│   └── weekly_reminder.py          # GitHub Actions email script
-└── .github/
-│   └── workflows/
-│       └── weekly_reminder.yml     # Scheduled Friday reminder
-├── api/
-│   ├── server.py                   # FastAPI app — serves UI and skill endpoints
-│   └── routes/
-│       ├── dashboard.py            # GET /api/dashboard, history endpoints
-│       ├── skills.py               # POST /api/skills/{skill_name}
-│       └── agent.py                # POST /api/run — full autonomous loop
-├── frontend/
-│   └── index.html                  # Single-page web UI (Arctic White theme)
-├── output/                         # Generated files — gitignored
-└── tests/
-    ├── test_observer.py
-    ├── test_memory.py
-    └── test_planner.py
+CareerPilot-Agent/
+├── agent.py                  # Main entrypoint: runs the agentic loop
+├── AGENT.md                  # Agent architecture documentation
+├── CLAUDE.md                 # AI assistant briefing and rules
+├── LICENSE                   # Project license
+├── Procfile                  # Railway deployment start command
+├── README.md                 # Project documentation (this file)
+├── pyproject.toml            # Python packaging and build config
+├── railway.json              # Railway deployment config
+├── requirements.txt          # Python dependencies
+├── .gitignore                # Files/folders to exclude from git
+├── actions/                  # Action dispatcher and security
+│   ├── error_handler.py      # Retry, timeout, fallback, rate limiting
+│   ├── executor.py           # Skill dispatcher, output saving
+│   └── security.py           # Input sanitization, path guards
+├── api/                      # FastAPI backend and API routes
+│   ├── server.py             # FastAPI app entrypoint
+│   └── routes/               # API endpoints
+│       ├── __init__.py
+│       ├── agent.py          # POST /api/run — full agentic loop
+│       ├── dashboard.py      # GET /api/dashboard, history endpoints
+│       ├── skills.py         # POST /api/skills/{skill_name}
+├── config/                   # Configuration and secrets
+│   ├── .env                  # Environment variables (never committed)
+│   ├── config.py             # Centralized config loader
+│   └── goals.yaml            # Target role, skills, companies
+├── credentials/              # Gmail API credentials (gitignored)
+│   ├── credentials.json      # OAuth2 client secrets
+│   └── token.json            # OAuth2 user token
+├── database/                 # Database utilities
+│   └── db_utils.py           # SQLite connection pooling
+├── frontend/                 # Web UI
+│   └── index.html            # Single-page HTML UI
+├── memory/                   # Agent memory (SQLite, snapshots, cache)
+│   ├── __pycache__/
+│   ├── careerpilot.db        # SQLite DB (gitignored)
+│   ├── github_cache.json     # GitHub API cache (gitignored)
+│   ├── latest_snapshot.json  # Last committed agent state
+│   ├── long_term.py          # Long-term memory logic
+│   └── short_term.py         # Short-term/session memory logic
+├── planner/                  # Autonomous planner
+│   └── reasoner.py           # Groq-powered planning logic
+├── scripts/                  # Automation and email scripts
+│   ├── careerpilot_daemon.py # Local daemon for weekly email
+│   ├── send_gmail_api.py     # Sends email via Gmail API
+│   └── weekly_reminder.py    # Email content builder
+├── skills/                   
+│   ├── registry.py           # Skill registration system
+│   ├── audit_repo/           # Repo audit skill
+│   │   ├── SKILL.md
+│   │   └── audit_repo.py
+│   ├── dev_card/             # Developer card skill
+│   │   ├── SKILL.md
+│   │   └── dev_card.py
+│   ├── gap_analyzer/         # Gap analysis skill
+│   │   ├── SKILL.md
+│   │   └── gap_analyzer.py
+│   ├── github_observer/      # GitHub profile observer
+│   │   ├── SKILL.md
+│   │   └── github_observer.py
+│   ├── goals_updater/        # Goals updater skill
+│   │   ├── SKILL.md
+│   │   └── goals_updater.py
+│   ├── interview_prep/       # Interview prep skill
+│   │   ├── SKILL.md
+│   │   └── interview_prep.py
+│   ├── linkedin_writer/      # LinkedIn post generator
+│   │   ├── SKILL.md
+│   │   └── linkedin_writer.py
+│   ├── nudge_writer/         # Weekly nudge skill
+│   │   ├── SKILL.md
+│   │   └── nudge_writer.py
+│   ├── project_suggester/    # Project suggestion skill
+│   │   ├── SKILL.md
+│   │   └── project_suggester.py
+│   ├── readme_writer/        # README rewrite skill
+│   │   ├── SKILL.md
+│   │   └── readme_writer.py
+├── tests/                    # Unit and integration tests
+│   ├── test_memory.py
+│   ├── test_observer.py
+│   └── test_planner.py
+└── venv/                     # Python virtual environment (gitignored)
 ```
-
----
+````
 
 ## Stack
 
@@ -173,7 +181,7 @@ careerpilot/
 | **Error handling** | Circuit breaker + custom retry/timeout/fallback |
 | **Security** | Prompt injection guard, path traversal protection |
 | **Testing** | pytest |
-| **Scheduling** | GitHub Actions (weekly reminder) |
+| **Scheduling** | Local cron job (weekly reminder) |
 | **Deployment** | Railway (free tier) |
 | **Caching** | Local JSON (1hr GitHub cache) |
 | **Connection Pooling**| SQLite pooling (5 connections) |
@@ -218,12 +226,17 @@ CareerPilot automatically emails you every Friday at 6PM PKT with your
 current score, gaps, and a LinkedIn nudge — no laptop required.
 
 Setup:
-1. Go to your repo → Settings → Secrets and variables → Actions
-2. Add `REMINDER_EMAIL_SENDER`, `REMINDER_EMAIL_PASSWORD`, `REMINDER_EMAIL_RECEIVERS`
-3. Run `python agent.py` once to generate `memory/latest_snapshot.json`
-4. Push to GitHub — the workflow runs automatically every Friday
+1. Make sure your Gmail API credentials are in `credentials/` (`credentials.json` and `token.json`)
+2. Set `REMINDER_EMAIL_SENDER` and `REMINDER_EMAIL_RECEIVERS` in `config/.env`
+3. Run `python scripts/send_gmail_api.py` to send a test email
+4. (Recommended) Set up a cron job to run `python scripts/send_gmail_api.py` every Friday at 6PM
 
-To test manually: GitHub → Actions → Weekly CareerPilot Reminder → Run workflow
+Example cron job (edit with `crontab -e`):
+```
+0 18 * * 5 cd /path/to/CareerPilot-Agent && /path/to/python3 scripts/send_gmail_api.py
+```
+
+No GitHub Actions or cloud automation is required — all reminders are sent locally from your machine.
 
 ---
 

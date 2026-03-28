@@ -1,3 +1,4 @@
+# .gitignore additions for best practice
 venv/
 __pycache__/
 *.pyc
@@ -9,3 +10,4 @@ memory/careerpilot.db
 memory/__pycache__/
 !memory/latest_snapshot.json
 memory/github_cache.json
+credentials/

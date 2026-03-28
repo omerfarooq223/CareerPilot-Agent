@@ -1,7 +1,8 @@
 import os
 import json
 import smtplib
-from datetime import datetime
+from datetime import datetime, timezone
+import sqlite3
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from pathlib import Path
@@ -11,8 +12,28 @@ PASSWORD  = os.getenv("REMINDER_EMAIL_PASSWORD")
 RECEIVERS = os.getenv("REMINDER_EMAIL_RECEIVERS", "").split(",")
 
 
+def get_latest_post_info():
+    db_path = Path("memory/careerpilot.db")
+    if not db_path.exists():
+        return None, None, None, None
+    conn = sqlite3.connect(str(db_path))
+    cur = conn.cursor()
+    cur.execute('''SELECT timestamp, repo_name, post_content FROM linkedin_posts WHERE status="approved" ORDER BY timestamp DESC LIMIT 1''')
+    row = cur.fetchone()
+    conn.close()
+    if not row:
+        return None, None, None, None
+    ts, repo, content = row
+    # Calculate days since post
+    post_time = datetime.fromisoformat(ts)
+    now = datetime.now(timezone.utc).astimezone()
+    days_since = (now.date() - post_time.date()).days
+    return repo, content, days_since, ts
+
+
 def get_latest_data() -> dict:
     """Load data from committed JSON snapshot."""
+    data = None
     paths = [
         Path("memory/latest_snapshot.json"),
         Path("../memory/latest_snapshot.json"),
@@ -20,9 +41,19 @@ def get_latest_data() -> dict:
     for path in paths:
         if path.exists():
             print(f"Loading snapshot from {path}")
-            return json.loads(path.read_text())
-    print("No snapshot found")
-    return {}
+            data = json.loads(path.read_text())
+            break
+    if not data:
+        print("No snapshot found")
+        data = {}
+    # Patch in latest LinkedIn post info
+    repo, content, days_since, ts = get_latest_post_info()
+    if repo:
+        data["last_post_repo"] = repo
+        data["days_since_post"] = days_since
+        data["last_post_content"] = content
+        data["last_post_timestamp"] = ts
+    return data
 
 
 def build_html(data: dict) -> str:
