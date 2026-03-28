@@ -1,54 +1,70 @@
 # 🤖 CareerPilot
 
-A fully autonomous AI agent that watches your GitHub, analyzes your skill gaps,
-and coaches you toward landing your target internship — week over week.
-
-Built with a real agentic loop: **Observe → Analyze → Remember → Plan → Act**
+> A fully autonomous AI agent that watches your GitHub, tracks your skill gaps, and coaches you toward landing your target internship — week over week.
 
 ---
 
-## How it works
+## The Problem
+
+Most students send out applications without really knowing where they stand. Which skills are you actually missing? Which of your projects would make a recruiter scroll past? Probably hard to say.
+
+CareerPilot reads your GitHub and tells you. It scores your profile against your target role, points at specific gaps and nudges you the following week to see if you moved on them.
+
+---
+
+## How It Works
+
+CareerPilot runs a continuous agentic loop across five stages:
+
 ```
-python agent.py
-      │
-      ├── OBSERVE   → Reads your entire GitHub profile via REST API
-      ├── ANALYZE   → Groq LLM compares you vs your target role (consistent scoring)
-      ├── REMEMBER  → Saves progress snapshots to SQLite (week-over-week tracking)
-      ├── PLAN      → Agent autonomously decides what to do next
-      └── ACT       → Executes skills via registry, saves outputs to output/
+Observe → Analyze → Remember → Plan → Act
 ```
+
+| Stage | What happens |
+|---|---|
+| **Observe** | Reads your entire GitHub profile via the REST API |
+| **Analyze** | LLM compares your profile against your target role and produces a consistent readiness score |
+| **Remember** | Saves progress snapshots to SQLite for week-over-week tracking |
+| **Plan** | Agent autonomously decides what skill or gap to address next |
+| **Act** | Executes a skill from the registry and saves output to `output/` |
 
 ---
 
 ## Quickstart
+
 ```bash
 git clone https://github.com/omerfarooq223/CareerPilot-Agent
 cd CareerPilot-Agent
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-cp config/.env.example config/.env   # fill in your keys
+cp config/.env.example config/.env   # fill in your API keys
 ```
 
 **Run the CLI agent:**
+
 ```bash
 python agent.py
 ```
 
 **Run the web UI:**
+
 ```bash
 uvicorn api.server:app --reload --port 8000
-# Open http://localhost:8000
+# Then open http://localhost:8000
 ```
-**Or visit the live demo:** https://web-production-e1faa.up.railway.app
+
+**Or try the live demo:** https://web-production-e1faa.up.railway.app
 
 ---
 
 ## Configuration
 
 ### `config/config.py`
-Centralized configuration loader. Uses `config/.env` for secrets and defines app-wide constants.
+
+Centralized configuration loader. Reads secrets from `config/.env` and defines app-wide constants.
 
 ### `config/goals.yaml`
+
 ```yaml
 model_provider: "groq"
 model_name: "llama-3.3-70b-versatile"
@@ -68,104 +84,119 @@ preferred_stack:
 
 | Skill | Description | Output |
 |---|---|---|
-| `suggest_project` | Tailored mini-project to fill your biggest skill gap | `output/suggested_project.md` |
-| `audit_repo` | Smart audit — deep code via MCP if available, metadata fallback | `output/audit_<repo>.md` |
-| `rewrite_readme` | Professional README rewrite | `output/readme_<repo>.md` |
-| `generate_dev_card` | Markdown developer profile card | `output/developer_card.md` |
-| `mock_interview_prep` | Role-specific interview questions | `output/mock_interview_prep.md` |
+| `suggest_project` | Suggests a mini-project targeting your biggest skill gap | `output/suggested_project.md` |
+| `audit_repo` | Deep code audit via MCP if available, metadata fallback otherwise | `output/audit_<repo>.md` |
+| `rewrite_readme` | Rewrites a repo's README to a professional standard | `output/readme_<repo>.md` |
+| `generate_dev_card` | Generates a Markdown developer profile card | `output/developer_card.md` |
+| `mock_interview_prep` | Produces role-specific interview questions | `output/mock_interview_prep.md` |
 | `weekly_nudge` | Honest weekly progress report | `output/weekly_nudge.md` |
-| `linkedin_writer` | HITL LinkedIn post generator with post memory | `output/linkedin_<type>_<repo>.md` |
-| `update_goals` | Auto-syncs shipped_projects and skills from GitHub | `config/goals.yaml` |
+| `linkedin_writer` | LinkedIn post generator with post memory (HITL) | `output/linkedin_<type>_<repo>.md` |
+| `update_goals` | Auto-syncs shipped projects and skills from GitHub | `config/goals.yaml` |
 
 ---
 
-## Project structure
+## Adding a New Skill
+
+1. Create `skills/your_skill/your_skill.py`
+2. Create `skills/your_skill/SKILL.md`
+3. Register it in `actions/executor.py`:
+
+```python
+from skills.your_skill.your_skill import your_skill
+registry.register("your_skill", "Description")(your_skill)
+```
+
+The planner and web UI pick it up automatically.
+
+---
+
+## Project Structure
+
 ```
 CareerPilot-Agent/
 ├── agent.py                  # Main entrypoint: runs the agentic loop
 ├── AGENT.md                  # Agent architecture documentation
 ├── CLAUDE.md                 # AI assistant briefing and rules
-├── LICENSE                   # Project license
+├── LICENSE
 ├── Procfile                  # Railway deployment start command
-├── README.md                 # Project documentation (this file)
+├── README.md
 ├── pyproject.toml            # Python packaging and build config
 ├── railway.json              # Railway deployment config
-├── requirements.txt          # Python dependencies
-├── .gitignore                # Files/folders to exclude from git
+├── requirements.txt
+├── .gitignore
 ├── actions/                  # Action dispatcher and security
 │   ├── error_handler.py      # Retry, timeout, fallback, rate limiting
-│   ├── executor.py           # Skill dispatcher, output saving
-│   └── security.py           # Input sanitization, path guards
-├── api/                      # FastAPI backend and API routes
+│   ├── executor.py           # Skill dispatcher and output saving
+│   └── security.py           # Input sanitization and path guards
+├── api/                      # FastAPI backend
 │   ├── server.py             # FastAPI app entrypoint
-│   └── routes/               # API endpoints
+│   └── routes/
 │       ├── __init__.py
 │       ├── agent.py          # POST /api/run — full agentic loop
 │       ├── dashboard.py      # GET /api/dashboard, history endpoints
-│       ├── skills.py         # POST /api/skills/{skill_name}
-├── config/                   # Configuration and secrets
+│       └── skills.py         # POST /api/skills/{skill_name}
+├── config/
 │   ├── .env                  # Environment variables (never committed)
 │   ├── config.py             # Centralized config loader
 │   └── goals.yaml            # Target role, skills, companies
 ├── credentials/              # Gmail API credentials (gitignored)
-│   ├── credentials.json      # OAuth2 client secrets
-│   └── token.json            # OAuth2 user token
-├── database/                 # Database utilities
+│   ├── credentials.json
+│   └── token.json
+├── database/
 │   └── db_utils.py           # SQLite connection pooling
-├── frontend/                 # Web UI
+├── frontend/
 │   └── index.html            # Single-page HTML UI
-├── memory/                   # Agent memory (SQLite, snapshots, cache)
-│   ├── __pycache__/
+├── memory/
 │   ├── careerpilot.db        # SQLite DB (gitignored)
 │   ├── github_cache.json     # GitHub API cache (gitignored)
 │   ├── latest_snapshot.json  # Last committed agent state
 │   ├── long_term.py          # Long-term memory logic
 │   └── short_term.py         # Short-term/session memory logic
-├── planner/                  # Autonomous planner
+├── planner/
 │   └── reasoner.py           # Groq-powered planning logic
-├── scripts/                  # Automation and email scripts
+├── scripts/
 │   ├── careerpilot_daemon.py # Local daemon for weekly email
 │   ├── send_gmail_api.py     # Sends email via Gmail API
 │   └── weekly_reminder.py    # Email content builder
-├── skills/                   
+├── skills/
 │   ├── registry.py           # Skill registration system
-│   ├── audit_repo/           # Repo audit skill
+│   ├── audit_repo/
 │   │   ├── SKILL.md
 │   │   └── audit_repo.py
-│   ├── dev_card/             # Developer card skill
+│   ├── dev_card/
 │   │   ├── SKILL.md
 │   │   └── dev_card.py
-│   ├── gap_analyzer/         # Gap analysis skill
+│   ├── gap_analyzer/
 │   │   ├── SKILL.md
 │   │   └── gap_analyzer.py
-│   ├── github_observer/      # GitHub profile observer
+│   ├── github_observer/
 │   │   ├── SKILL.md
 │   │   └── github_observer.py
-│   ├── goals_updater/        # Goals updater skill
+│   ├── goals_updater/
 │   │   ├── SKILL.md
 │   │   └── goals_updater.py
-│   ├── interview_prep/       # Interview prep skill
+│   ├── interview_prep/
 │   │   ├── SKILL.md
 │   │   └── interview_prep.py
-│   ├── linkedin_writer/      # LinkedIn post generator
+│   ├── linkedin_writer/
 │   │   ├── SKILL.md
 │   │   └── linkedin_writer.py
-│   ├── nudge_writer/         # Weekly nudge skill
+│   ├── nudge_writer/
 │   │   ├── SKILL.md
 │   │   └── nudge_writer.py
-│   ├── project_suggester/    # Project suggestion skill
+│   ├── project_suggester/
 │   │   ├── SKILL.md
 │   │   └── project_suggester.py
-│   ├── readme_writer/        # README rewrite skill
-│   │   ├── SKILL.md
-│   │   └── readme_writer.py
-├── tests/                    # Unit and integration tests
-│   ├── test_memory.py
-│   ├── test_observer.py
-│   └── test_planner.py
-└── venv/                     # Python virtual environment (gitignored)
+│   └── readme_writer/
+│       ├── SKILL.md
+│       └── readme_writer.py
+└── tests/
+    ├── test_memory.py
+    ├── test_observer.py
+    └── test_planner.py
 ```
-````
+
+---
 
 ## Stack
 
@@ -183,38 +214,17 @@ CareerPilot-Agent/
 | **Testing** | pytest |
 | **Scheduling** | Local cron job (weekly reminder) |
 | **Deployment** | Railway (free tier) |
-| **Caching** | Local JSON (1hr GitHub cache) |
-| **Connection Pooling**| SQLite pooling (5 connections) |
-
----
-
-## Adding a new skill
-
-1. Create `skills/your_skill/your_skill.py`
-2. Create `skills/your_skill/SKILL.md`
-3. Register in `actions/executor.py`:
-```python
-from skills.your_skill.your_skill import your_skill
-registry.register("your_skill", "Description")(your_skill)
-```
-
-The planner and web UI pick it up automatically.
-
----
-
-## Running tests
-```bash
-pytest tests/ -v
-```
+| **Caching** | Local JSON (1-hour GitHub cache) |
+| **Connection pooling** | SQLite (5 connections) |
 
 ---
 
 ## Security
 
-- API keys via `python-dotenv` with `override=True` — never hardcoded
+- API keys loaded via `python-dotenv` — never hardcoded
 - Prompt injection detection on all inputs
 - Path traversal protection on all file writes
-- Secret scrubbing before any LLM call
+- Secrets scrubbed before any LLM call
 - Environment variable validation at boot
 - Rate limiting on all Groq API calls
 
@@ -222,21 +232,28 @@ pytest tests/ -v
 
 ## Weekly Email Reminder
 
-CareerPilot automatically emails you every Friday at 6PM PKT with your
-current score, gaps, and a LinkedIn nudge — no laptop required.
+CareerPilot emails you every Friday at 6PM PKT with your current score, identified gaps, and a LinkedIn nudge — no manual check-in needed.
 
-Setup:
-1. Make sure your Gmail API credentials are in `credentials/` (`credentials.json` and `token.json`)
+**Setup:**
+
+1. Place your Gmail API credentials in `credentials/` (`credentials.json` and `token.json`)
 2. Set `REMINDER_EMAIL_SENDER` and `REMINDER_EMAIL_RECEIVERS` in `config/.env`
-3. Run `python scripts/send_gmail_api.py` to send a test email
-4. (Recommended) Set up a cron job to run `python scripts/send_gmail_api.py` every Friday at 6PM
+3. Test with: `python scripts/send_gmail_api.py`
+4. Set up a weekly cron job:
 
-Example cron job (edit with `crontab -e`):
 ```
 0 18 * * 5 cd /path/to/CareerPilot-Agent && /path/to/python3 scripts/send_gmail_api.py
 ```
 
-No GitHub Actions or cloud automation is required — all reminders are sent locally from your machine.
+No GitHub Actions or cloud automation required — reminders run locally.
+
+---
+
+## Running Tests
+
+```bash
+pytest tests/ -v
+```
 
 ---
 
