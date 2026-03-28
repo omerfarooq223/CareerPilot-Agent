@@ -1,6 +1,6 @@
 # 🤖 CareerPilot
 
-> A fully autonomous AI agent that watches your GitHub, tracks your skill gaps, and coaches you toward landing your target internship — week over week.
+> A fully autonomous AI agent that watches your GitHub, tracks your skill gaps and coaches you toward landing your target internship, week over week.
 
 ---
 
