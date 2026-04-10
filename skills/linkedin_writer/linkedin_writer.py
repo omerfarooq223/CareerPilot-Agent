@@ -189,7 +189,7 @@ Code's on my GitHub if you want to see the mess."
 Match this energy — specific tech, no corporate language, proud but not hype.
 
 --- HARD RULES ---
-- 900–1200 characters total. Count carefully.
+- No less than 900 words total and it can be 1200 words maximum.
 - Never use: "excited to share", "pleased to announce", "game-changer", "this has the potential to", "I think this can really"
 - Every sentence must be specific to THIS project — if it could appear in any developer's post, cut it
 - Line breaks every 2–3 lines for LinkedIn readability
@@ -205,7 +205,7 @@ Match this energy — specific tech, no corporate language, proud but not hype.
 Write ONE complete LinkedIn post. Nothing else.
 """
 
-    post = call_groq(prompt, max_tokens=800)
+    post = call_groq(prompt, max_tokens=2400)
     filename = f"linkedin_{post_type}_{repo_name or 'general'}.md"
     save_output(filename, post)
     return post
@@ -246,7 +246,7 @@ def linkedin_writer(session: SessionMemory) -> str:
         border_style="green",
         padding=(1, 2)
     ))
-    console.print(f"[dim]Character count: {len(post)}/1300[/dim]\n")
+    console.print(f"[dim]Word count: {len(post.split())}[/dim]\n")
 
     # Save as pending and return structured json to UI
     post_id = save_linkedin_post(post_type, repo_name, post, "pending")

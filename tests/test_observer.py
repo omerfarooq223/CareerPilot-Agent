@@ -1,7 +1,7 @@
 import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from skills.github_observer import fetch_github_profile, GitHubProfile, RepoSnapshot
+from skills.github_observer.github_observer import fetch_github_profile, GitHubProfile, RepoSnapshot
 
 def test_profile_returns_correct_type():
     profile = fetch_github_profile()

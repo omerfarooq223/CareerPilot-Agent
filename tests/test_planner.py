@@ -3,7 +3,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from memory.short_term import SessionMemory
 from planner.reasoner import make_plan, AgentPlan
-from skills.gap_analyzer import GapReport
+from skills.gap_analyzer.gap_analyzer import GapReport
 
 MOCK_REPORT = GapReport(
     strengths=["Python", "AI/ML"],

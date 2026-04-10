@@ -4,6 +4,14 @@
 
 ---
 
+## Product Preview
+
+![CareerPilot Web Dashboard](assets/careerpilot-dashboard.png)
+
+The dashboard gives you one place to run skills, inspect generated outputs, and track your progress over time.
+
+---
+
 ## The Problem
 
 Most students send out applications without really knowing where they stand. Which skills are you actually missing? Which of your projects would make a recruiter scroll past? Probably hard to say.
@@ -50,8 +58,12 @@ python agent.py
 
 ```bash
 uvicorn api.server:app --reload --port 8000
-# Then open http://localhost:8000
+# Then open http://127.0.0.1:8000
 ```
+
+Preview of the local dashboard:
+
+![CareerPilot Local Dashboard](assets/careerpilot-dashboard.png)
 
 **Or try the live demo:** https://web-production-e1faa.up.railway.app
 
@@ -132,9 +144,11 @@ CareerPilot-Agent/
 │   ├── server.py             # FastAPI app entrypoint
 │   └── routes/
 │       ├── __init__.py
-│       ├── agent.py          # POST /api/run — full agentic loop
+│       ├── agent.py          # POST /api/run — loop execution, POST /api/ask — intent chat router
 │       ├── dashboard.py      # GET /api/dashboard, history endpoints
 │       └── skills.py         # POST /api/skills/{skill_name}
+├── assets/
+│   └── careerpilot-dashboard.png  # README product screenshot
 ├── config/
 │   ├── .env                  # Environment variables (never committed)
 │   ├── config.py             # Centralized config loader
@@ -207,7 +221,7 @@ CareerPilot-Agent/
 | **Memory** | SQLite |
 | **Data models** | Pydantic |
 | **Web framework** | FastAPI |
-| **Frontend** | Vanilla HTML/CSS/JS + marked.js |
+| **Frontend** | Vanilla HTML/CSS/JS + marked.js (Premium Glassmorphism UI & Floating Chat) |
 | **CLI** | Rich + Loguru |
 | **Error handling** | Circuit breaker + custom retry/timeout/fallback |
 | **Security** | Prompt injection guard, path traversal protection |

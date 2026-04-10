@@ -2,7 +2,7 @@ import sys, os, json
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from memory.long_term import init_db, save_snapshot, get_last_snapshot, get_score_history
-from skills.gap_analyzer import GapReport
+from skills.gap_analyzer.gap_analyzer import GapReport
 
 MOCK_REPORT = GapReport(
     strengths=["Python", "AI/ML"],
