@@ -1993,6 +1993,13 @@ function appendChatMessage(role, text) {
   history.scrollTop = history.scrollHeight;
 }
 
+// ── Chat Session Memory ──────────────────────────────────────
+let chatSessionId = localStorage.getItem('careerpilot_chat_session');
+if (!chatSessionId) {
+  chatSessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  localStorage.setItem('careerpilot_chat_session', chatSessionId);
+}
+
 async function sendChatMessage() {
   const input = document.getElementById('chatInput');
   const btn = document.getElementById('chatSendBtn');
@@ -2019,9 +2026,18 @@ async function sendChatMessage() {
     const res = await fetch(`${API}/api/ask`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text })
+      body: JSON.stringify({ 
+        message: text,
+        session_id: chatSessionId
+      })
     });
     const data = await res.json();
+    
+    // Update session ID if server returned a new one
+    if (data.session_id) {
+      chatSessionId = data.session_id;
+      localStorage.setItem('careerpilot_chat_session', chatSessionId);
+    }
     
     // Remove typing indicator
     document.getElementById('typingIndicator').remove();

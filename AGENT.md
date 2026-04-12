@@ -174,6 +174,64 @@ criteria so the LLM scores against objective standards, not subjective judgment.
 
 ---
 
+## Interactive Chat System (`POST /api/ask`)
+
+The `/api/ask` endpoint provides conversational access to the agent via the web UI.
+
+### Features
+
+- **Conversation Memory** — Each chat session maintains history of recent messages
+- **Real Data Answers** — Responses use actual GitHub profile data, not generic advice
+- **Context Awareness** — Agent remembers previous questions when user asks follow-ups
+- **Skill Triggering** — Users can request skills directly (e.g., "audit my repo")
+- **Session Persistence** — Browser stores `session_id` in localStorage across page reloads
+
+### How it works
+
+1. User types a message in the chat bubble
+2. Frontend sends: `{ message: "...", session_id: "..." }`
+3. Backend receives message, loads conversation history for this session
+4. Agent builds prompt with:
+   - User's actual GitHub profile (repos, languages, score, gaps)
+   - Last N messages from this conversation
+   - List of available skills
+5. Agent responds with intent: either `"qa"` (answer directly) or `"skill"` (trigger action)
+6. Response stored in session history
+7. Frontend displays response, maintaining context for next turn
+
+### Example conversation flow
+
+```
+User: "How many Python repos do I have?"
+Agent: "You have 6 repositories using Python."
+       ↓ [stored in session history]
+
+User: "What are their names?"
+Agent: [recalls previous Python question]
+       "The Python repositories are: autoresearch-agent, nexus-ai-pipeline, ..."
+```
+
+### Session Memory Storage
+
+**Backend** (`api/routes/agent.py`):
+- `_conversation_history` — in-memory dict: `session_id → [(role, content, timestamp), ...]`
+- Max 5 recent messages included in prompt context
+- Cleared on server restart (dev) or needs DB persistence (production)
+
+**Frontend** (`frontend/index.html`):
+- `chatSessionId` stored in `localStorage` under key `careerpilot_chat_session`
+- Survives page reloads within same browser session
+- New browser/private window = new session
+
+### Testing
+
+Run the main automated test suite:
+```bash
+pytest tests/ -v
+```
+
+---
+
 ## Extending the agent
 
 ### Add a new skill

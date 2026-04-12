@@ -61,6 +61,12 @@ uvicorn api.server:app --reload --port 8000
 # Then open http://127.0.0.1:8000
 ```
 
+The dashboard includes a **floating chat interface** where you can:
+- Ask questions about your GitHub profile (e.g., "How many repos do I have?")
+- Get real answers using your actual GitHub data
+- Follow up with contextual questions (e.g., "Name them") — **the agent remembers previous messages**
+- Trigger skills directly (e.g., "Audit my CareerPilot-Agent repo")
+
 Preview of the local dashboard:
 
 ![CareerPilot Local Dashboard](assets/careerpilot-dashboard.png)
@@ -104,6 +110,11 @@ preferred_stack:
 | `weekly_nudge` | Honest weekly progress report | `output/weekly_nudge.md` |
 | `linkedin_writer` | LinkedIn post generator with post memory (HITL) | `output/linkedin_<type>_<repo>.md` |
 | `update_goals` | Auto-syncs shipped projects and skills from GitHub | `config/goals.yaml` |
+
+**Chat Features:**
+- 💬 **Conversational Q&A** — Ask about your profile, repos, languages, score, and gaps
+- 🧠 **Conversation Memory** — Each chat session remembers previous messages
+- 🎯 **Real Data** — Answers use your actual GitHub profile, not generic advice
 
 ---
 
@@ -263,8 +274,9 @@ No GitHub Actions or cloud automation required — reminders run locally.
 
 ---
 
-## Running Tests
+## Testing & Debugging
 
+**Run pytest tests:**
 ```bash
 pytest tests/ -v
 ```

@@ -121,6 +121,14 @@ def build_html(data: dict) -> str:
         for s in strengths
     ) or '<tr><td style="padding:7px 0;font-size:13px;color:#94a3b8;">—</td></tr>'
 
+    priorities = gaps[:3]
+    priority_items = "".join(
+      f'<tr><td style="padding:9px 0;font-size:13px;color:#1e293b;line-height:1.55;">'
+      f'<span style="display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;border-radius:50%;'
+      f'background:#eff6ff;color:#2563eb;font-size:11px;font-weight:700;margin-right:8px;">{idx+1}</span>{item}</td></tr>'
+      for idx, item in enumerate(priorities)
+    ) or '<tr><td style="padding:9px 0;font-size:13px;color:#334155;">You are in a strong position this week. Keep shipping quality work.</td></tr>'
+
     closed_section = ""
     if closed_gaps:
         items = "".join(
@@ -143,40 +151,38 @@ def build_html(data: dict) -> str:
     return f"""<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Arial,sans-serif;">
-<div style="max-width:600px;margin:32px auto;background:#ffffff;border-radius:14px;
-            overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+<body style="margin:0;padding:0;background:#eef2f7;font-family:'Segoe UI',Arial,sans-serif;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;visibility:hidden;">
+  Weekly CareerPilot update: score {score}/10, {len(gaps)} critical gaps, {len(strengths)} confirmed strengths.
+</div>
+<div style="max-width:620px;margin:26px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(15,23,42,0.10);">
 
-  <!-- Header -->
-  <div style="background:#0ea5e9;padding:24px 32px;">
-    <div style="font-size:20px;font-weight:800;color:white;">&#129302; CareerPilot</div>
-    <div style="font-size:12px;color:rgba(255,255,255,0.85);margin-top:4px;">
-      Your weekly career intelligence report &middot; {datetime.now().strftime('%A, %B %d %Y')}
+  <div style="background:linear-gradient(135deg,#0ea5e9,#2563eb);padding:26px 30px;">
+    <div style="font-size:22px;font-weight:800;color:#ffffff;letter-spacing:0.2px;">CareerPilot Weekly Brief</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.9);margin-top:6px;line-height:1.4;">
+      Internship readiness snapshot for {datetime.now().strftime('%A, %B %d, %Y')}
     </div>
   </div>
 
-  <!-- Score -->
-  <div style="padding:28px 32px;border-bottom:1px solid #e2e8f0;">
-    <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#94a3b8;
-                text-transform:uppercase;margin-bottom:16px;">
-      Hirability Score &mdash; Last updated {last_updated}
+  <div style="padding:26px 30px;border-bottom:1px solid #e2e8f0;">
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.8px;color:#64748b;text-transform:uppercase;margin-bottom:15px;">
+      Hirability Score  |  Last updated {last_updated}
     </div>
     <table width="100%" cellpadding="0" cellspacing="0" border="0">
       <tr>
-        <td width="80" valign="top" style="padding-right:20px;">
-          <div style="width:72px;height:72px;border-radius:50%;border:3px solid {score_color};
-                      background:{score_color}15;text-align:center;line-height:72px;">
-            <span style="font-size:28px;font-weight:800;color:{score_color};line-height:72px;">{score}</span>
+        <td width="90" valign="top" style="padding-right:18px;">
+          <div style="width:76px;height:76px;border-radius:50%;border:3px solid {score_color};background:{score_color}15;text-align:center;line-height:76px;">
+            <span style="font-size:29px;font-weight:800;color:{score_color};line-height:76px;">{score}</span>
           </div>
-          <div style="text-align:center;font-size:11px;color:#94a3b8;margin-top:4px;">out of 10</div>
+          <div style="text-align:center;font-size:11px;color:#64748b;margin-top:5px;">out of 10</div>
         </td>
         <td valign="top">
-          <div style="margin-bottom:6px;">{trend}</div>
-          <div style="font-size:13px;color:#64748b;line-height:1.65;margin-bottom:12px;">
+          <div style="margin-bottom:7px;">{trend}</div>
+          <div style="font-size:13px;color:#475569;line-height:1.65;margin-bottom:12px;">
             {verdict[:300]}{'...' if len(verdict) > 300 else ''}
           </div>
-          <div style="height:5px;background:#e0f2fe;border-radius:3px;">
-            <div style="height:100%;width:{bar_width}%;background:{score_color};border-radius:3px;"></div>
+          <div style="height:6px;background:#dbeafe;border-radius:6px;">
+            <div style="height:100%;width:{bar_width}%;background:{score_color};border-radius:6px;"></div>
           </div>
         </td>
       </tr>
@@ -185,27 +191,30 @@ def build_html(data: dict) -> str:
 
   {closed_section}
 
-  <!-- Gaps & Strengths -->
-  <div style="padding:24px 32px;border-bottom:1px solid #e2e8f0;">
+  <div style="padding:22px 30px;border-bottom:1px solid #e2e8f0;">
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#2563eb;text-transform:uppercase;margin-bottom:10px;">
+      This Week Priorities
+    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">{priority_items}</table>
+  </div>
+
+  <div style="padding:24px 30px;border-bottom:1px solid #e2e8f0;">
     <table width="100%" cellpadding="0" cellspacing="0" border="0">
       <tr>
-        <td width="48%" valign="top" style="padding-right:16px;">
-          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#e11d48;
-                      text-transform:uppercase;margin-bottom:10px;">Critical Gaps</div>
+        <td width="48%" valign="top" style="padding-right:14px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#e11d48;text-transform:uppercase;margin-bottom:10px;">Critical Gaps</div>
           <table width="100%">{gap_rows}</table>
         </td>
         <td width="4%" style="border-right:1px solid #e2e8f0;">&nbsp;</td>
-        <td width="48%" valign="top" style="padding-left:16px;">
-          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#059669;
-                      text-transform:uppercase;margin-bottom:10px;">Strengths</div>
+        <td width="48%" valign="top" style="padding-left:14px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#059669;text-transform:uppercase;margin-bottom:10px;">Strengths</div>
           <table width="100%">{strength_rows}</table>
         </td>
       </tr>
     </table>
   </div>
 
-  <!-- Stats -->
-  <div style="background:#f8fafc;padding:20px 32px;border-bottom:1px solid #e2e8f0;">
+  <div style="background:#f8fafc;padding:20px 30px;border-bottom:1px solid #e2e8f0;">
     <table width="100%" cellpadding="0" cellspacing="0">
       <tr>
         <td style="text-align:center;">
@@ -213,8 +222,7 @@ def build_html(data: dict) -> str:
           <div style="font-size:11px;color:#94a3b8;margin-top:2px;">Sessions tracked</div>
         </td>
         <td style="text-align:center;border-left:1px solid #e2e8f0;">
-          <div style="font-size:28px;font-weight:800;
-            color:{'#059669' if len(gaps)==0 else '#e11d48' if len(gaps)>=3 else '#f59e0b'};">{len(gaps)}</div>
+          <div style="font-size:28px;font-weight:800;color:{'#059669' if len(gaps)==0 else '#e11d48' if len(gaps)>=3 else '#f59e0b'};">{len(gaps)}</div>
           <div style="font-size:11px;color:#94a3b8;margin-top:2px;">Gaps remaining</div>
         </td>
         <td style="text-align:center;border-left:1px solid #e2e8f0;">
@@ -225,31 +233,22 @@ def build_html(data: dict) -> str:
     </table>
   </div>
 
-  <!-- LinkedIn -->
-  <div style="padding:20px 32px;border-bottom:1px solid #e2e8f0;">
-    <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#94a3b8;
-                text-transform:uppercase;margin-bottom:10px;">LinkedIn Activity</div>
+  <div style="padding:20px 30px;border-bottom:1px solid #e2e8f0;">
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#94a3b8;text-transform:uppercase;margin-bottom:10px;">LinkedIn Activity</div>
     <div style="font-size:13px;color:{li_color};line-height:1.6;">
       <span style="margin-right:6px;">{li_icon}</span>{li_msg}
     </div>
   </div>
 
-  <!-- CTA -->
-  <div style="padding:28px 32px;text-align:center;">
-    <div style="font-size:13px;color:#94a3b8;margin-bottom:16px;">
-      Run the agent to update your report and stay on track
-    </div>
-    <a href="https://github.com/omerfarooq223/CareerPilot-Agent"
-       style="display:inline-block;background:#0ea5e9;color:white;padding:13px 32px;
-              border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;">
+  <div style="padding:28px 30px;text-align:center;">
+    <div style="font-size:13px;color:#64748b;margin-bottom:16px;">Keep momentum this week. Run the agent after shipping a meaningful improvement.</div>
+    <a href="https://github.com/omerfarooq223/CareerPilot-Agent" style="display:inline-block;background:#2563eb;color:white;padding:13px 32px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;box-shadow:0 6px 18px rgba(37,99,235,0.25);">
       Open CareerPilot &#8594;
     </a>
   </div>
 
-  <!-- Footer -->
-  <div style="padding:14px 32px;background:#f8fafc;border-top:1px solid #e2e8f0;
-              text-align:center;font-size:11px;color:#94a3b8;">
-    CareerPilot &middot; {datetime.now().strftime('%B %d, %Y')}
+  <div style="padding:14px 30px;background:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;font-size:11px;color:#64748b;">
+    CareerPilot  |  {datetime.now().strftime('%B %d, %Y')}  |  Weekly coaching reminder
   </div>
 
 </div>
