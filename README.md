@@ -286,3 +286,5 @@ pytest tests/ -v
 ## License
 
 [MIT](LICENSE)
+
+Author: Muhammad Umar Farooq
