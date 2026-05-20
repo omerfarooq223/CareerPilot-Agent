@@ -11,3 +11,9 @@ memory/__pycache__/
 !memory/latest_snapshot.json
 memory/github_cache.json
 credentials/
+config/goals.yaml
+config.yaml
+config/config.yaml
+config/constraints.yaml
+config/performance_evaluation.yaml
+config/resources.yaml

@@ -6,6 +6,9 @@ import sqlite3
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv("config/.env")
 
 SENDER    = os.getenv("REMINDER_EMAIL_SENDER")
 PASSWORD  = os.getenv("REMINDER_EMAIL_PASSWORD")
