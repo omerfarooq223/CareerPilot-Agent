@@ -7,6 +7,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes import skills, agent, dashboard
+from scripts.reminder_scheduler import (
+    start_weekly_email_scheduler,
+    stop_weekly_email_scheduler,
+)
 
 app = FastAPI(title="CareerPilot API", version="1.0.0")
 
@@ -25,6 +29,14 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "frontend")), name="static")
+
+@app.on_event("startup")
+def startup_event():
+    start_weekly_email_scheduler()
+
+@app.on_event("shutdown")
+def shutdown_event():
+    stop_weekly_email_scheduler()
 
 @app.get("/")
 def root():

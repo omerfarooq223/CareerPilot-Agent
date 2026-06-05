@@ -67,10 +67,6 @@ The dashboard includes a **floating chat interface** where you can:
 - Follow up with contextual questions (e.g., "Name them") — **the agent remembers previous messages**
 - Trigger skills directly (e.g., "Audit my CareerPilot-Agent repo")
 
-Preview of the local dashboard:
-
-![CareerPilot Local Dashboard](assets/careerpilot-dashboard.png)
-
 **Or try the live demo:** https://web-production-e1faa.up.railway.app
 
 ---
@@ -138,7 +134,7 @@ The planner and web UI pick it up automatically.
 ```
 CareerPilot-Agent/
 ├── agent.py                  # Main entrypoint: runs the agentic loop
-├── AGENT.md                  # Agent architecture documentation
+├── AGENTS.md                 # AI assistant briefing and project rules
 ├── CLAUDE.md                 # AI assistant briefing and rules
 ├── LICENSE
 ├── Procfile                  # Railway deployment start command
@@ -181,8 +177,9 @@ CareerPilot-Agent/
 │   └── reasoner.py           # Groq-powered planning logic
 ├── scripts/
 │   ├── careerpilot_daemon.py # Local daemon for weekly email
+│   ├── reminder_scheduler.py # FastAPI startup scheduler for weekly email
 │   ├── send_gmail_api.py     # Sends email via Gmail API
-│   └── weekly_reminder.py    # Email content builder
+│   └── weekly_reminder.py    # Email content builder and SMTP fallback
 ├── skills/
 │   ├── registry.py           # Skill registration system
 │   ├── audit_repo/
@@ -218,7 +215,8 @@ CareerPilot-Agent/
 └── tests/
     ├── test_memory.py
     ├── test_observer.py
-    └── test_planner.py
+    ├── test_planner.py
+    └── test_weekly_email_schedule.py
 ```
 
 ---
@@ -237,7 +235,7 @@ CareerPilot-Agent/
 | **Error handling** | Circuit breaker + custom retry/timeout/fallback |
 | **Security** | Prompt injection guard, path traversal protection |
 | **Testing** | pytest |
-| **Scheduling** | Local cron job (weekly reminder) |
+| **Scheduling** | Local cron job + FastAPI startup scheduler (weekly reminder) |
 | **Deployment** | Railway (free tier) |
 | **Caching** | Local JSON (1-hour GitHub cache) |
 | **Connection pooling** | SQLite (5 connections) |
@@ -263,14 +261,36 @@ CareerPilot emails you every Friday at 6PM PKT with your current score, identifi
 
 1. Place your Gmail API credentials in `credentials/` (`credentials.json` and `token.json`)
 2. Set `REMINDER_EMAIL_SENDER` and `REMINDER_EMAIL_RECEIVERS` in `config/.env`
-3. Test with: `python scripts/send_gmail_api.py`
-4. Set up a weekly cron job:
+3. Optional: set `REMINDER_TIMEZONE=Asia/Karachi` in `config/.env` (this is the default)
+4. Test with: `python scripts/send_gmail_api.py`
+5. Keep either the web app, daemon, or cron job running at the scheduled time
+
+**Local cron job:**
+
+Use absolute paths and write logs so failures are visible:
 
 ```
-0 18 * * 5 cd /path/to/CareerPilot-Agent && /path/to/python3 scripts/send_gmail_api.py
+0 18 * * 5 cd "/absolute/path/to/CareerPilot Agent" && "/absolute/path/to/CareerPilot Agent/venv/bin/python" "/absolute/path/to/CareerPilot Agent/scripts/send_gmail_api.py" >> "/absolute/path/to/CareerPilot Agent/logs/weekly_email.log" 2>&1
 ```
 
-No GitHub Actions or cloud automation required — reminders run locally.
+For this machine, the installed cron path is:
+
+```
+0 18 * * 5 cd "/Users/muhammadomerfarooq/Desktop/GitHub Repositories/CareerPilot Agent" && "/Users/muhammadomerfarooq/Desktop/GitHub Repositories/CareerPilot Agent/venv/bin/python" "/Users/muhammadomerfarooq/Desktop/GitHub Repositories/CareerPilot Agent/scripts/send_gmail_api.py" >> "/Users/muhammadomerfarooq/Desktop/GitHub Repositories/CareerPilot Agent/logs/weekly_email.log" 2>&1
+```
+
+**Alternative schedulers:**
+
+- FastAPI starts `scripts/reminder_scheduler.py` automatically and schedules the same Friday 6PM PKT email while the web process is alive.
+- The standalone daemon can be run with: `python scripts/careerpilot_daemon.py`
+- Set `CAREERPILOT_ENABLE_EMAIL_SCHEDULER=false` to disable the FastAPI startup scheduler.
+
+**Troubleshooting:**
+
+- Check `logs/weekly_email.log` after Friday 6PM PKT for cron output.
+- Gmail API is the primary sender and uses `credentials/token.json`.
+- `REMINDER_EMAIL_PASSWORD` is only needed for the SMTP fallback in `weekly_reminder.py`.
+- If the token expires, `send_gmail_api.py` refreshes it when a refresh token is present.
 
 ---
 
@@ -287,4 +307,4 @@ pytest tests/ -v
 
 [MIT](LICENSE)
 
-Author: Muhammad Umar Farooq
+Author: [![Muhammad Umar Farooq](https://img.shields.io/badge/Muhammad%20Umar%20Farooq-Portfolio-2563eb?style=for-the-badge)](https://omerfarooq223.github.io)

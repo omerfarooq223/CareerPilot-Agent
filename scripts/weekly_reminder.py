@@ -8,15 +8,21 @@ from email.mime.multipart import MIMEMultipart
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv("config/.env")
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / "config" / ".env", override=True)
 
 SENDER    = os.getenv("REMINDER_EMAIL_SENDER")
 PASSWORD  = os.getenv("REMINDER_EMAIL_PASSWORD")
 RECEIVERS = os.getenv("REMINDER_EMAIL_RECEIVERS", "").split(",")
 
 
+def _clean_receivers() -> list[str]:
+    """Return configured reminder recipients without blanks."""
+    return [r.strip() for r in RECEIVERS if r.strip()]
+
+
 def get_latest_post_info():
-    db_path = Path("memory/careerpilot.db")
+    db_path = BASE_DIR / "memory" / "careerpilot.db"
     if not db_path.exists():
         return None, None, None, None
     conn = sqlite3.connect(str(db_path))
@@ -38,8 +44,7 @@ def get_latest_data() -> dict:
     """Load data from committed JSON snapshot."""
     data = None
     paths = [
-        Path("memory/latest_snapshot.json"),
-        Path("../memory/latest_snapshot.json"),
+        BASE_DIR / "memory" / "latest_snapshot.json",
     ]
     for path in paths:
         if path.exists():
@@ -260,6 +265,14 @@ def build_html(data: dict) -> str:
 
 
 def send_reminder():
+    receivers = _clean_receivers()
+    if not SENDER:
+        raise RuntimeError("REMINDER_EMAIL_SENDER is not set")
+    if not PASSWORD:
+        raise RuntimeError("REMINDER_EMAIL_PASSWORD is not set for SMTP fallback")
+    if not receivers:
+        raise RuntimeError("REMINDER_EMAIL_RECEIVERS is not set")
+
     print("Fetching CareerPilot data...")
     data = get_latest_data()
     score   = data.get("score", "N/A")
@@ -269,14 +282,14 @@ def send_reminder():
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
     msg["From"]    = SENDER
-    msg["To"]      = ", ".join(RECEIVERS)
+    msg["To"]      = ", ".join(receivers)
     msg.attach(MIMEText(html, "html"))
 
-    print(f"Sending to: {RECEIVERS}")
+    print(f"Sending to: {receivers}")
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(SENDER, PASSWORD)
-        server.sendmail(SENDER, RECEIVERS, msg.as_string())
-    print(f"✓ Sent to {len(RECEIVERS)} recipients")
+        server.sendmail(SENDER, receivers, msg.as_string())
+    print(f"✓ Sent to {len(receivers)} recipients")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
-# CLAUDE.md — CareerPilot Agent
+# AGENTS.md — CareerPilot Agent
 
-This file is auto-read by Claude Code and AI assistants.
+This file is auto-read by Codex and AI assistants.
 Read this fully before making any changes to the codebase.
 
 ---
@@ -46,7 +46,7 @@ pytest tests/ -v
 ```
 careerpilot/
 ├── agent.py                        # CoreAgent — boots the full CLI loop
-├── CLAUDE.md                       # AI assistant briefing
+├── AGENTS.md                       # AI assistant briefing
 ├── config/
 │   ├── .env                        # Secrets — NEVER commit this
 │   └── goals.yaml                  # Your target role, skills, companies
